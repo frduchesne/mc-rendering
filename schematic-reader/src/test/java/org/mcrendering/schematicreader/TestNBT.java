@@ -1,20 +1,18 @@
-package org.mcrendering.test;
+package org.mcrendering.schematicreader;
 
 import java.io.InputStream;
-
-import org.mcrendering.engine.Utils;
 
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.flowpowered.nbt.stream.NBTInputStream;
 
-public class LoadSchema {
+public class TestNBT {
 
 	public static void main(String[] args) {
 		
-        try {
-            InputStream fis = Class.forName(Utils.class.getName()).getResourceAsStream("/models/caverne.schematic");
-            NBTInputStream nbt = new NBTInputStream(fis);
+        try (   InputStream fis = Class.forName(TestNBT.class.getName()).getResourceAsStream("/models/caverne.schematic");
+                NBTInputStream nbt = new NBTInputStream(fis);
+        		) {
             CompoundTag backuptag = (CompoundTag) nbt.readTag();
             CompoundMap tagCollection = backuptag.getValue();
 
@@ -23,8 +21,6 @@ public class LoadSchema {
             short length = (Short) tagCollection.get( "Length").getValue();
 
             byte[] blocks = (byte[]) tagCollection.get("Blocks").getValue();
-            nbt.close();
-            fis.close();
             System.out.println("width : " + width);
             System.out.println("height : " + height);
             System.out.println("length : " + length);

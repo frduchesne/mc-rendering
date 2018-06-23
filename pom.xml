@@ -10,8 +10,11 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>first-test</module>
 		<module>schematic-reader</module>
+		<module>common</module>
+		<module>basic</module>
+		<module>first-test</module>
+		<module>tmp</module>
 	</modules>
 
 	<properties>
@@ -27,6 +30,27 @@
 	
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>org.mcrendering</groupId>
+				<artifactId>common</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mcrendering</groupId>
+				<artifactId>schematic-reader</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mcrendering</groupId>
+				<artifactId>basic</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mcrendering</groupId>
+				<artifactId>first-test</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		
 			<dependency>
 				<groupId>com.flowpowered</groupId>
 				<artifactId>flow-nbt</artifactId>

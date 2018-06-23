@@ -2,4 +2,4 @@
 
 Work in progress.
 
-Examples of open-gl techniques on minecraft models.
+Examples of opengl techniques on minecraft models.

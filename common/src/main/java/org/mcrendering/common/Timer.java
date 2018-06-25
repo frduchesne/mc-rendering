@@ -1,4 +1,4 @@
-package org.mcrendering.basic;
+package org.mcrendering.common;
 
 public class Timer {
 

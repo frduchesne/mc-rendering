@@ -1,4 +1,4 @@
-package org.mcrendering.basic;
+package org.mcrendering.common;
 
 import org.joml.Vector2d;
 import org.joml.Vector2f;

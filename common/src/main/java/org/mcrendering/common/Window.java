@@ -1,4 +1,4 @@
-package org.mcrendering.basic;
+package org.mcrendering.common;
 
 import org.joml.Matrix4f;
 import static org.lwjgl.glfw.GLFW.*;
@@ -35,15 +35,12 @@ public class Window {
 
     private boolean resized;
 
-    private boolean vSync;
-
     private Matrix4f projectionMatrix;
 
-    public Window(String title, int width, int height, boolean vSync) {
+    public Window(String title, int width, int height) {
         this.title = title;
         this.width = width;
         this.height = height;
-        this.vSync = vSync;
         this.resized = false;
         projectionMatrix = new Matrix4f();
     }
@@ -199,10 +196,6 @@ public class Window {
 
     public void setResized(boolean resized) {
         this.resized = resized;
-    }
-
-    public boolean isvSync() {
-        return vSync;
     }
 
     public void update() {

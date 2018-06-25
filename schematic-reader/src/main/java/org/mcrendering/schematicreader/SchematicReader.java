@@ -10,13 +10,12 @@ import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.flowpowered.nbt.stream.NBTInputStream;
 
-public class Main {
+public class SchematicReader {
 
-	public static void main(String[] args) {
-
-        try (   InputStream fis = Class.forName(Main.class.getName()).getResourceAsStream("/models/caverne.schematic");
-                NBTInputStream nbt = new NBTInputStream(fis);
-        		) {
+	public World read(InputStream fis) {
+		List<Block> blockList = null;
+        TextureMap textureMap = new TextureMap();
+        try (NBTInputStream nbt = new NBTInputStream(fis);) {
             CompoundTag backuptag = (CompoundTag) nbt.readTag();
             CompoundMap tagCollection = backuptag.getValue();
 
@@ -24,8 +23,7 @@ public class Main {
             short height = (Short) tagCollection.get("Height").getValue();
             short length = (Short) tagCollection.get( "Length").getValue();
 
-
-            BlockReader blockReader = new BlockReader(tagCollection);
+            BlockReader blockReader = new BlockReader(tagCollection, textureMap);
             
             byte[] blocks = (byte[]) tagCollection.get("Blocks").getValue();
             System.out.println("width : " + width);
@@ -34,7 +32,7 @@ public class Main {
             System.out.println("nb blocks :" + blocks.length);
             
             System.out.println("Blocks");
-            List<Block> blockList = new ArrayList<>();
+            blockList = new ArrayList<>();
             for (int h = 0; h < height; h++) {
             	for (int l = 0; l < length; l++) {
             		for (int w = 0; w < width; w++) {
@@ -53,6 +51,12 @@ public class Main {
             
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
+        
+        World world = new World(blockList, textureMap);
+        
+        return world;
 	}
+
 }

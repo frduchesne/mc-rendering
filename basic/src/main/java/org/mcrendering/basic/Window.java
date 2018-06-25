@@ -1,4 +1,4 @@
-package org.mcrendering.engine;
+package org.mcrendering.basic;
 
 import org.joml.Matrix4f;
 import static org.lwjgl.glfw.GLFW.*;

@@ -1,7 +1,4 @@
-package org.mcrendering.game;
-
-import org.mcrendering.engine.GameEngine;
-import org.mcrendering.engine.IGameLogic;
+package org.mcrendering.basic;
 
 public class Main {
 

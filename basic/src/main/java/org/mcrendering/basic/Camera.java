@@ -1,4 +1,4 @@
-package org.mcrendering.engine.graph;
+package org.mcrendering.basic;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -37,7 +37,10 @@ public class Camera {
     }
     
     public Matrix4f updateViewMatrix() {
-        return Transformation.updateGenericViewMatrix(position, rotation, viewMatrix);
+        // First do the rotation so camera rotates over its position
+        return viewMatrix.rotationX((float)Math.toRadians(rotation.x))
+                     .rotateY((float)Math.toRadians(rotation.y))
+                     .translate(-position.x, -position.y, -position.z);
     }
     
     public void movePosition(float offsetX, float offsetY, float offsetZ) {

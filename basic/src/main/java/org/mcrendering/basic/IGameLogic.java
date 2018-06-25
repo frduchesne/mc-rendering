@@ -1,4 +1,4 @@
-package org.mcrendering.engine;
+package org.mcrendering.basic;
 
 public interface IGameLogic {
 

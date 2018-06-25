@@ -7,9 +7,17 @@ public class BlockFace {
 
 	private Vector3i from;
 	private Vector3i to;
-	private Vector2i u;
-	private Vector2i v;
-	private String texture;
+	private Vector2i uvFrom;
+	private Vector2i uvTo;
+	private int textureOffset;
+	
+	public int getTextureOffset() {
+		return textureOffset;
+	}
+	public void setTextureOffset(int textureOffset) {
+		this.textureOffset = textureOffset;
+	}
+
 	public Vector3i getFrom() {
 		return from;
 	}
@@ -22,29 +30,25 @@ public class BlockFace {
 	public void setTo(Vector3i to) {
 		this.to = to;
 	}
-	public Vector2i getU() {
-		return u;
+	public Vector2i getUvFrom() {
+		return uvFrom;
 	}
-	public void setU(Vector2i u) {
-		this.u = u;
+	public void setUvFrom(Vector2i uvFrom) {
+		this.uvFrom = uvFrom;
 	}
-	public Vector2i getV() {
-		return v;
+	public Vector2i getUvTo() {
+		return uvTo;
 	}
-	public void setV(Vector2i v) {
-		this.v = v;
+	public void setUvTo(Vector2i uvTo) {
+		this.uvTo = uvTo;
 	}
-	public String getTexture() {
-		return texture;
-	}
-	public void setTexture(String texture) {
-		this.texture = texture;
-	}
+
 	@Override
 	public String toString() {
-		return "BlockFace [from=" + from + ", to=" + to + ", u=" + u + ", v=" + v + ", texture=" + texture + "]";
+		return "BlockFace [from=" + from + ", to=" + to + ", uvFrom=" + uvFrom + ", uvTo=" + uvTo + ", textureOffset="
+				+ textureOffset + "]";
 	}
-	
+
 	public boolean isValid() {
 		boolean valid = true;
 		if (to == null) {
@@ -53,10 +57,6 @@ public class BlockFace {
 		}
 		if (from == null) {
 			System.err.println("from null");
-			valid = false;
-		}
-		if (texture == null) {
-			System.err.println("texture null");
 			valid = false;
 		}
 		

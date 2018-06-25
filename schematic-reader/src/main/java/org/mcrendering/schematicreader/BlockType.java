@@ -8,6 +8,16 @@ public class BlockType {
 	private BlockFace east;
 	private BlockFace north;
 	private BlockFace south;
+	private TextureMap textureMap;
+	
+	public BlockType(TextureMap textureMap) {
+		this.textureMap = textureMap;
+	}
+	
+	public TextureMap getTextureMap() {
+		return this.textureMap;
+	}
+	
 	public BlockFace getUp() {
 		return up;
 	}
@@ -79,5 +89,4 @@ public class BlockType {
 		
 		return valid;
 	}
-	
 }

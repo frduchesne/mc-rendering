@@ -1,4 +1,4 @@
-package org.mcrendering.engine;
+package org.mcrendering.basic;
 
 import java.io.BufferedReader;
 import java.io.IOException;

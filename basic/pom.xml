@@ -15,6 +15,10 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.mcrendering</groupId>
+			<artifactId>schematic-reader</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mcrendering</groupId>
 			<artifactId>common</artifactId>
 		</dependency>
 		<dependency>
@@ -58,31 +62,37 @@
 		<dependency>
 			<groupId>org.lwjgl</groupId>
 			<artifactId>lwjgl</artifactId>
+			<classifier>${native.target}</classifier>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.lwjgl</groupId>
 			<artifactId>lwjgl-opengl</artifactId>
+			<classifier>${native.target}</classifier>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.lwjgl</groupId>
 			<artifactId>lwjgl-glfw</artifactId>
+			<classifier>${native.target}</classifier>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.lwjgl</groupId>
 			<artifactId>lwjgl-openal</artifactId>
+			<classifier>${native.target}</classifier>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.lwjgl</groupId>
 			<artifactId>lwjgl-stb</artifactId>
+			<classifier>${native.target}</classifier>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.lwjgl</groupId>
 			<artifactId>lwjgl-nanovg</artifactId>
+			<classifier>${native.target}</classifier>
 			<scope>runtime</scope>
 		</dependency>
 	</dependencies>

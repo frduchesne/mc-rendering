@@ -3,7 +3,6 @@ package org.mcrendering.schematicreader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,11 +20,13 @@ import com.google.gson.JsonParser;
 public class BlockReader {
 
 	private CompoundMap tagCollection;
+	private TextureMap textureMap;
 	
 	private Map<String, BlockType> blocks = new HashMap<>();
 	
-	public BlockReader(CompoundMap tagCollection) {
+	public BlockReader(CompoundMap tagCollection, TextureMap textureMap) {
 		this.tagCollection = tagCollection;
+		this.textureMap = textureMap;
 	}
 	
 	public BlockType read(int index) {
@@ -45,11 +46,18 @@ public class BlockReader {
         	return null;
         }
     	
-        return readModel(model);
+        BlockType blockType = readModel(model);
+        if (blockType == null) {
+        	return null;
+        }
+        
+        blocks.put(key, blockType);
+        
+        return blockType;
 	}
 	
 	private BlockType readModel(String model) {
-    	File modelFile = getResource(String.format("minecraft/models/block/%s.json", model));
+    	File modelFile = Utils.getResource(String.format("minecraft/models/block/%s.json", model));
     	if (modelFile == null) {
     		System.err.println("No model found for " + model);
     		return null;
@@ -60,7 +68,7 @@ public class BlockReader {
     	jsonObjects.add(jsonObject);
     	JsonElement parent = jsonObject.get("parent");
     	while (parent != null) {
-    		File parentFile = getResource(String.format("minecraft/models/%s.json", parent.getAsString()));
+    		File parentFile = Utils.getResource(String.format("minecraft/models/%s.json", parent.getAsString()));
         	if (parentFile == null) {
         		System.err.println("No parent found : " + parent.getAsString());
         		break;
@@ -84,7 +92,7 @@ public class BlockReader {
     		}
     	}
     	
-    	BlockType blockType = new BlockType();
+    	BlockType blockType = new BlockType(textureMap);
     	blockType.setUp(new BlockFace());
     	blockType.setDown(new BlockFace());
     	blockType.setNorth(new BlockFace());
@@ -139,15 +147,17 @@ public class BlockReader {
     					System.err.println("no texture found for " + jsonTexture);
     					continue;
     				}
-    				blockFace.setTexture(texture);
+    				blockFace.setTextureOffset(textureMap.getTextureOffset(texture));
     				
     				JsonElement jsonUv = face.getValue().getAsJsonObject().get("uv");
     				if (jsonUv == null) {
-    					continue;
+    					blockFace.setUvFrom(new Vector2i(0, 0));
+    					blockFace.setUvTo(new Vector2i(16, 16));
+    				} else {
+        				JsonArray uv = jsonUv.getAsJsonArray();
+        				blockFace.setUvFrom(new Vector2i(uv.get(0).getAsInt(), uv.get(1).getAsInt()));
+        				blockFace.setUvTo(new Vector2i(uv.get(2).getAsInt(), uv.get(3).getAsInt()));
     				}
-    				JsonArray uv = jsonUv.getAsJsonArray();
-    				blockFace.setU(new Vector2i(uv.get(0).getAsInt(), uv.get(1).getAsInt()));
-    				blockFace.setV(new Vector2i(uv.get(2).getAsInt(), uv.get(3).getAsInt()));
     			}
     		}
     	}
@@ -174,7 +184,7 @@ public class BlockReader {
 	private String findModel(byte block, byte data) {
 		String blockId = (String) ((CompoundMap) tagCollection.get("BlockIDs").getValue()).get(Byte.toString(block)).getValue();
 		
-		File blockStateFile = getResource(String.format("minecraft/blockstates/%s.json", blockId.split(":")[1]));
+		File blockStateFile = Utils.getResource(String.format("minecraft/blockstates/%s.json", blockId.split(":")[1]));
 		
 		if (blockStateFile == null) {
 			return null;
@@ -206,19 +216,5 @@ public class BlockReader {
         }
 	}
 	
-	private File getResource(String path) {
-		
-		URL res = BlockReader.class.getClassLoader().getResource(path);
-		
-		if (res == null) {
-			return null;
-		}
-		
-		File file = new File(res.getFile());
-		
-		if (!file.exists()) {
-			return null;
-		}
-		return file;
-	}
+
 }

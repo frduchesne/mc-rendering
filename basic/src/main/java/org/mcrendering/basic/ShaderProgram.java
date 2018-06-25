@@ -1,4 +1,4 @@
-package org.mcrendering.engine.graph;
+package org.mcrendering.basic;
 
 import java.nio.FloatBuffer;
 import java.util.HashMap;
@@ -124,11 +124,6 @@ public class ShaderProgram {
 
     public void setUniform(String uniformName, Vector4f value) {
         glUniform4f(uniforms.get(uniformName), value.x, value.y, value.z, value.w);
-    }
-
-    public void setUniform(String uniformName, Material material) {
-        setUniform(uniformName + ".ambient", material.getAmbientColour());
-        setUniform(uniformName + ".hasTexture", material.isTextured() ? 1 : 0);
     }
 
     public void createVertexShader(String shaderCode) throws Exception {

@@ -13,7 +13,6 @@ import java.io.InputStream;
 
 import org.joml.Matrix4f;
 import org.mcrendering.common.Camera;
-import org.mcrendering.common.GameEngine;
 import org.mcrendering.common.IRenderer;
 import org.mcrendering.common.MouseInput;
 import org.mcrendering.common.ShaderProgram;
@@ -21,6 +20,26 @@ import org.mcrendering.common.Utils;
 import org.mcrendering.common.Window;
 import org.mcrendering.schematicreader.SchematicReader;
 import org.mcrendering.schematicreader.World;
+
+/*
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.*;
+import static org.lwjgl.opengl.GL13.*;
+import static org.lwjgl.opengl.GL14.*;
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL21.*;
+import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL31.*;
+import static org.lwjgl.opengl.GL32.*;
+import static org.lwjgl.opengl.GL33.*;
+import static org.lwjgl.opengl.GL40.*;
+import static org.lwjgl.opengl.GL41.*;
+import static org.lwjgl.opengl.GL42.*;
+import static org.lwjgl.opengl.GL43.*;
+import static org.lwjgl.opengl.GL44.*;
+import static org.lwjgl.opengl.GL45.*;
+ */
 
 public class BasicRenderer implements IRenderer {
 
@@ -37,7 +56,7 @@ public class BasicRenderer implements IRenderer {
     	this.window = window;
     	this.camera = camera;
     	
-        try (   InputStream fis = Class.forName(SchematicReader.class.getName()).getResourceAsStream("/models/model.schematic");) {
+        try (   InputStream fis = BasicRenderer.class.getResourceAsStream("/models/model.schematic");) {
         	this.world = new SchematicReader().read(fis);
         }
 
@@ -99,15 +118,6 @@ public class BasicRenderer implements IRenderer {
 
     @Override
     public void cleanupApplication() {
-        world.cleanUp();
+        world.cleanup();
     }
-    
-    public static void main(String[] args) {
-        try {
-            new GameEngine("GAME", new BasicRenderer()).start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 }

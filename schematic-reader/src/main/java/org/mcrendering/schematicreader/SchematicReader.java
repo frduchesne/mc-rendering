@@ -24,14 +24,7 @@ public class SchematicReader {
             short length = (Short) tagCollection.get( "Length").getValue();
 
             BlockReader blockReader = new BlockReader(tagCollection, textureMap);
-            
-            byte[] blocks = (byte[]) tagCollection.get("Blocks").getValue();
-            System.out.println("width : " + width);
-            System.out.println("height : " + height);
-            System.out.println("length : " + length);
-            System.out.println("nb blocks :" + blocks.length);
-            
-            System.out.println("Blocks");
+
             blockList = new ArrayList<>();
             for (int h = 0; h < height; h++) {
             	for (int l = 0; l < length; l++) {

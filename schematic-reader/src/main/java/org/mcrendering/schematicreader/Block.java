@@ -41,21 +41,13 @@ public class Block {
 	}
 	
     public void init() {
-    	float[] positions = new float[6 * 4 * 3];
+    	float[] positions = new float[72];
     	System.arraycopy(getSouthPositions(), 0, positions, 0, 12);
     	System.arraycopy(getNorthPositions(), 0, positions, 12, 12);
     	System.arraycopy(getWestPositions(), 0, positions, 24, 12);
     	System.arraycopy(getEastPositions(), 0, positions, 36, 12);
     	System.arraycopy(getDownPositions(), 0, positions, 48, 12);
     	System.arraycopy(getUpPositions(), 0, positions, 60, 12);
-    	
-    	int[] indices = new int[36];
-    	System.arraycopy(getSouthIndices(), 0, indices, 0, 6);
-    	System.arraycopy(getNorthIndices(), 0, indices, 6, 6);
-    	System.arraycopy(getWestIndices(), 0, indices, 12, 6);
-    	System.arraycopy(getEastIndices(), 0, indices, 18, 6);
-    	System.arraycopy(getDownIndices(), 0, indices, 24, 6);
-    	System.arraycopy(getUpIndices(), 0, indices, 30, 6);
     	
     	float[] textCoords = new float[48];
     	System.arraycopy(getTexCoords(type.getSouth()), 0, textCoords, 0, 8);
@@ -65,8 +57,25 @@ public class Block {
     	System.arraycopy(getTexCoords(type.getDown()), 0, textCoords, 32, 8);
     	System.arraycopy(getTexCoords(type.getUp()), 0, textCoords, 40, 8);
 
+    	float[] normals = new float[72];
+    	System.arraycopy(getNormalCoordinates(getSouthNormal()), 0, normals, 0, 12);
+    	System.arraycopy(getNormalCoordinates(getNorthNormal()), 0, normals, 12, 12);
+    	System.arraycopy(getNormalCoordinates(getWestNormal()), 0, normals, 24, 12);
+    	System.arraycopy(getNormalCoordinates(getEastNormal()), 0, normals, 36, 12);
+    	System.arraycopy(getNormalCoordinates(getDownNormal()), 0, normals, 48, 12);
+    	System.arraycopy(getNormalCoordinates(getUpNormal()), 0, normals, 60, 12);
+    	
+    	int[] indices = new int[36];
+    	System.arraycopy(getSouthIndices(), 0, indices, 0, 6);
+    	System.arraycopy(getNorthIndices(), 0, indices, 6, 6);
+    	System.arraycopy(getWestIndices(), 0, indices, 12, 6);
+    	System.arraycopy(getEastIndices(), 0, indices, 18, 6);
+    	System.arraycopy(getDownIndices(), 0, indices, 24, 6);
+    	System.arraycopy(getUpIndices(), 0, indices, 30, 6);
+
     	FloatBuffer posBuffer = null;
         FloatBuffer textCoordsBuffer = null;
+        FloatBuffer normalBuffer = null;
         IntBuffer indicesBuffer = null;
         try {
             vertexCount = indices.length;
@@ -93,6 +102,15 @@ public class Block {
             glBufferData(GL_ARRAY_BUFFER, textCoordsBuffer, GL_STATIC_DRAW);
             glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
 
+            // Normal VBO
+            vboId = glGenBuffers();
+            vboIdList.add(vboId);
+            normalBuffer = MemoryUtil.memAllocFloat(normals.length);
+            normalBuffer.put(normals).flip();
+            glBindBuffer(GL_ARRAY_BUFFER, vboId);
+            glBufferData(GL_ARRAY_BUFFER, normalBuffer, GL_STATIC_DRAW);
+            glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
+
             // Index VBO
             vboId = glGenBuffers();
             vboIdList.add(vboId);
@@ -110,6 +128,9 @@ public class Block {
             if (textCoordsBuffer != null) {
                 MemoryUtil.memFree(textCoordsBuffer);
             }
+            if (normalBuffer != null) {
+            	MemoryUtil.memFree(normalBuffer);
+            }
             if (indicesBuffer != null) {
                 MemoryUtil.memFree(indicesBuffer);
             }
@@ -122,12 +143,14 @@ public class Block {
         glBindVertexArray(vaoId);
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
 
         glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0);
 
         // Restore state
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
         glBindVertexArray(0);
     }
 
@@ -163,6 +186,10 @@ public class Block {
 	        from.x, to.y, from.z};
     }
     
+    private Vector3f getSouthNormal() {
+    	return new Vector3f(0f, 0f, 1f);
+    }
+    
     private int[] getSouthIndices() {
     	return new int[] {
     		0, 1, 2,
@@ -186,6 +213,10 @@ public class Block {
 	        to.x, from.y, from.z,
 	        to.x, to.y, from.z,
 	        from.x, to.y, from.z};
+    }
+    
+    private Vector3f getNorthNormal() {
+    	return new Vector3f(0f, 0f, -1f);
     }
 
     private int[] getNorthIndices() {
@@ -212,6 +243,10 @@ public class Block {
 	        from.x, to.y, to.z,
 	        from.x, to.y, from.z};
     }
+    
+    private Vector3f getWestNormal() {
+    	return new Vector3f(-1f, 0f, 0f);
+    }
 
     private int[] getWestIndices() {
     	return new int[] {
@@ -236,6 +271,10 @@ public class Block {
 	        from.x, from.y, to.z,
 	        from.x, to.y, to.z,
 	        from.x, to.y, from.z};
+    }
+    
+    private Vector3f getEastNormal() {
+    	return new Vector3f(1f, 0f, 0f);
     }
 
     private int[] getEastIndices() {
@@ -262,7 +301,11 @@ public class Block {
 	        to.x, from.y, to.z,
 	        from.x, from.y, to.z};
     }
-
+    
+    private Vector3f getDownNormal() {
+    	return new Vector3f(0f, -1f, 0f);
+    }
+    
     private int[] getDownIndices() {
     	return new int[] {
     		16, 17, 18,
@@ -287,6 +330,10 @@ public class Block {
 	        to.x, from.y, to.z,
 	        from.x, from.y, to.z};
     }
+    
+    private Vector3f getUpNormal() {
+    	return new Vector3f(0f, 1f, 0f);
+    }
 
     private int[] getUpIndices() {
     	return new int[] {
@@ -295,6 +342,15 @@ public class Block {
     	};
     }
 
+    private float[] getNormalCoordinates(Vector3f normal) {
+    	return new float[] {
+        		normal.x, normal.y, normal.z,
+        		normal.x, normal.y, normal.z,
+        		normal.x, normal.y, normal.z,
+        		normal.x, normal.y, normal.z
+    	};
+    }
+    
     private float[] getTexCoords(BlockFace face) {
     	return new float[] {
       			getU(face.getUvFrom().x), getV(face.getUvFrom().y, face),

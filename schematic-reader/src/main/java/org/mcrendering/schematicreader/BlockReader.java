@@ -92,7 +92,7 @@ public class BlockReader {
     		}
     	}
     	
-    	BlockType blockType = new BlockType(textureMap);
+    	BlockType blockType = new BlockType(textureMap, model);
     	blockType.setUp(new BlockFace());
     	blockType.setDown(new BlockFace());
     	blockType.setNorth(new BlockFace());
@@ -166,8 +166,6 @@ public class BlockReader {
     		System.err.println("block type not valid : " + blockType);
     		return null;
     	}
-    	
-    	System.out.println(blockType);
     	
     	return blockType;
 	}

@@ -9,9 +9,11 @@ public class BlockType {
 	private BlockFace north;
 	private BlockFace south;
 	private TextureMap textureMap;
+	private String model;
 	
-	public BlockType(TextureMap textureMap) {
+	public BlockType(TextureMap textureMap, String model) {
 		this.textureMap = textureMap;
+		this.model = model;
 	}
 	
 	public TextureMap getTextureMap() {
@@ -54,12 +56,18 @@ public class BlockType {
 	public void setSouth(BlockFace south) {
 		this.south = south;
 	}
+	
+	public String getModel() {
+		return model;
+	}
+
+	
 	@Override
 	public String toString() {
 		return "BlockType [up=" + up + ", down=" + down + ", west=" + west + ", east=" + east + ", north=" + north
-				+ ", south=" + south + "]";
+				+ ", south=" + south + ", model=" + model + "]";
 	}
-	
+
 	public boolean isValid() {
 		boolean valid = true;
 		if (up == null || !up.isValid()) {

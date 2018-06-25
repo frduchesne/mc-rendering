@@ -30,11 +30,11 @@ public class World {
 		//blocks.iterator().next().render();
 	}
 	
-	public void cleanUp() {
+	public void cleanup() {
 		for (Block block : blocks) {
 			block.cleanUp();
 		}
-        texture.cleanUp();
+        texture.cleanup();
 	}
 	
 	public int getTextureId() {

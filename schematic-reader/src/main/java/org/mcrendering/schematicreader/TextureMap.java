@@ -136,7 +136,7 @@ public class TextureMap {
         return id;
     }
 
-    public void cleanUp() {
+    public void cleanup() {
         glDeleteTextures(id);
     }
     

@@ -43,44 +43,6 @@ public class ShaderProgram {
             createUniform(uniformName + "[" + i + "]");
         }
     }
-
-    public void createPointLightListUniform(String uniformName, int size) throws Exception {
-        for (int i = 0; i < size; i++) {
-            createPointLightUniform(uniformName + "[" + i + "]");
-        }
-    }
-
-    public void createPointLightUniform(String uniformName) throws Exception {
-        createUniform(uniformName + ".colour");
-        createUniform(uniformName + ".mvPosition");
-        createUniform(uniformName + ".mPosition");
-        createUniform(uniformName + ".intensity");
-        createUniform(uniformName + ".att.constant");
-        createUniform(uniformName + ".att.linear");
-        createUniform(uniformName + ".att.exponent");
-        createUniform(uniformName + ".shadowViewProjTexMatrices");
-    }
-
-    public void createDirectionalLightUniform(String uniformName) throws Exception {
-        createUniform(uniformName + ".colour");
-        createUniform(uniformName + ".direction");
-        createUniform(uniformName + ".intensity");
-    }
-
-    public void createMaterialUniform(String uniformName) throws Exception {
-        createUniform(uniformName + ".ambient");
-        createUniform(uniformName + ".hasTexture");
-    }
-
-    public void createPointLightShadowUniform() throws Exception {
-        createUniform("lightPosition");
-        createUniform("shadowViewProjTexMatrices");
-    }
-
-    public void setUniform(Vector3f position, Matrix4f[] matrices) {
-    	setUniform("lightPosition", position);
-    	setUniform("shadowViewProjTexMatrices", matrices);
-    }
     
     public void setUniform(String uniformName, Matrix4f value) {
         try (MemoryStack stack = MemoryStack.stackPush()) {

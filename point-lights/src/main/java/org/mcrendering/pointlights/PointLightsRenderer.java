@@ -1,23 +1,13 @@
-package org.mcrendering.pointshadows;
+package org.mcrendering.pointlights;
 
-import static org.lwjgl.opengl.GL11.GL_CLIP_PLANE0;
-import static org.lwjgl.opengl.GL11.GL_CLIP_PLANE1;
-import static org.lwjgl.opengl.GL11.GL_CLIP_PLANE2;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_POLYGON_OFFSET_FILL;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glClear;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glPolygonOffset;
 import static org.lwjgl.opengl.GL11.glViewport;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
-import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
-import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -55,15 +45,11 @@ import static org.lwjgl.opengl.GL44.*;
 import static org.lwjgl.opengl.GL45.*;
  */
 
-public class PointShadowsRenderer implements IRenderer {
+public class PointLightsRenderer implements IRenderer {
 
     private static final int MAX_POINT_LIGHTS = 5;
 
     private World world;
-
-    private ShadowMap shadowMap;
-
-    private ShaderProgram depthShaderProgram;
 
     private ShaderProgram sceneShaderProgram;
 
@@ -78,9 +64,7 @@ public class PointShadowsRenderer implements IRenderer {
     	this.window = window;
     	this.camera = camera;
     	
-    	shadowMap = new ShadowMap();
-    	
-        try (   InputStream fis = PointShadowsRenderer.class.getResourceAsStream("/models/model.schematic");) {
+        try (   InputStream fis = PointLightsRenderer.class.getResourceAsStream("/models/model.schematic");) {
         	this.world = new SchematicReader().read(fis);
         }
 
@@ -111,26 +95,6 @@ public class PointShadowsRenderer implements IRenderer {
 
     @Override
     public void initRendering() throws Exception {
-        setupDepthShader();
-        setupSceneShader();
-    }
-
-    private void setupDepthShader() throws Exception {
-        depthShaderProgram = new ShaderProgram();
-        depthShaderProgram.createVertexShader(Utils.loadResource("/shaders/depth_vertex.vs"));
-        depthShaderProgram.createGeometryShader(Utils.loadResource("/shaders/depth_geometry.gs"));
-        depthShaderProgram.createFragmentShader(Utils.loadResource("/shaders/depth_fragment.fs"));
-        depthShaderProgram.link();  
-        
-       createPointLightShadowUniform(depthShaderProgram);
-      
-        glEnable(GL_CLIP_PLANE0);
-        glEnable(GL_CLIP_PLANE1);
-        glEnable(GL_CLIP_PLANE2);
-        
-    }
-
-    private void setupSceneShader() throws Exception {
         // Create shader
         sceneShaderProgram = new ShaderProgram();
         sceneShaderProgram.createVertexShader(Utils.loadResource("/shaders/scene_vertex.vs"));
@@ -145,17 +109,11 @@ public class PointShadowsRenderer implements IRenderer {
         sceneShaderProgram.createUniform("specularPower");
         sceneShaderProgram.createUniform("ambientLight");
         createPointLightListUniform(sceneShaderProgram, "pointLights", MAX_POINT_LIGHTS);
-        
-        // shadow
-        sceneShaderProgram.createUniform("shadowMap");
     }
 
     @Override
     public void render() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    	
-        // Render depth map before view ports has been set up
-        renderDepthMap();
  
         glViewport(0, 0, window.getWidth(), window.getHeight());
 
@@ -163,29 +121,6 @@ public class PointShadowsRenderer implements IRenderer {
         window.updateProjectionMatrix();
 
         renderScene();
-    }
-
-    private void renderDepthMap() {
-        glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.getDepthMapFBO());
-        glViewport(0, 0, ShadowMap.SHADOW_LENGTH, ShadowMap.SHADOW_LENGTH);
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        glPolygonOffset(3.4f, 0.0f);
-
-        glClear(GL_DEPTH_BUFFER_BIT);
-
-        depthShaderProgram.bind();
-        
-        TileMap tileMap = new TileMap();
-        for (PointLight pointLight : pointLights) {
-        	pointLight.updateTile(tileMap);
-            setUniform(depthShaderProgram, pointLight.getMPosition(), pointLight.getShadowMatrices());
-            world.render();
-        }
-        
-        // Unbind
-        depthShaderProgram.unbind();
-        glDisable(GL_POLYGON_OFFSET_FILL);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     
     private void renderScene() {
@@ -207,13 +142,9 @@ public class PointShadowsRenderer implements IRenderer {
         }
 
         sceneShaderProgram.setUniform("texture_sampler", 0);
-        sceneShaderProgram.setUniform("shadowMap", 1);
         
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, world.getTextureId());
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, shadowMap.getDepthMapTexture());
         
         world.render();
 
@@ -225,9 +156,6 @@ public class PointShadowsRenderer implements IRenderer {
         if (sceneShaderProgram != null) {
             sceneShaderProgram.cleanup();
         }
-        if (depthShaderProgram != null) {
-            depthShaderProgram.cleanup();
-        }
     }
 
     @Override
@@ -237,7 +165,6 @@ public class PointShadowsRenderer implements IRenderer {
     @Override
     public void cleanupApplication() {
         world.cleanup();
-        shadowMap.cleanup();
     }
     
     private void setUniform(ShaderProgram shaderProgram, String uniformName, PointLight pointLight, int pos) {
@@ -253,7 +180,6 @@ public class PointShadowsRenderer implements IRenderer {
         shaderProgram.setUniform(uniformName + ".att.constant", att.getConstant());
         shaderProgram.setUniform(uniformName + ".att.linear", att.getLinear());
         shaderProgram.setUniform(uniformName + ".att.exponent", att.getExponent());
-        shaderProgram.setUniform(uniformName + ".shadowViewProjTexMatrices", pointLight.getShadowMatrices());
     }
     
     private void createPointLightListUniform(ShaderProgram shaderProgram, String uniformName, int size) throws Exception {
@@ -270,18 +196,6 @@ public class PointShadowsRenderer implements IRenderer {
     	shaderProgram.createUniform(uniformName + ".att.constant");
     	shaderProgram.createUniform(uniformName + ".att.linear");
     	shaderProgram.createUniform(uniformName + ".att.exponent");
-    	shaderProgram.createUniform(uniformName + ".shadowViewProjTexMatrices");
-    }
-
-
-    private void createPointLightShadowUniform(ShaderProgram shaderProgram) throws Exception {
-    	shaderProgram.createUniform("lightPosition");
-    	shaderProgram.createUniform("shadowViewProjTexMatrices");
-    }
-
-    public void setUniform(ShaderProgram shaderProgram, Vector3f position, Matrix4f[] matrices) {
-    	shaderProgram.setUniform("lightPosition", position);
-    	shaderProgram.setUniform("shadowViewProjTexMatrices", matrices);
     }
 
 }

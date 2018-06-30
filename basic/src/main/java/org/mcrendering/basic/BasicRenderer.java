@@ -5,6 +5,7 @@ import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glClear;
+import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glViewport;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
@@ -62,9 +63,13 @@ public class BasicRenderer implements IRenderer {
 
         this.world.init();
         
-        camera.getPosition().x = 5f;
-        camera.getPosition().y = 5f;
-        camera.getPosition().z = 9f;
+        camera.getPosition().x = 4.2f;
+        camera.getPosition().y = 2.1f;
+        camera.getPosition().z = 2.7f;
+        
+        camera.getRotation().y = 140f;
+        
+        glClearColor(131f/255f, 175f/255f, 1.0f, 0.0f);
     }
 
     @Override

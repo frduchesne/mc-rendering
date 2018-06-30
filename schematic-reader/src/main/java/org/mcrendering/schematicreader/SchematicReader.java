@@ -22,7 +22,7 @@ public class SchematicReader {
             short width = (Short) tagCollection.get("Width").getValue();
             short height = (Short) tagCollection.get("Height").getValue();
             short length = (Short) tagCollection.get( "Length").getValue();
-
+            System.out.println(((CompoundMap) tagCollection.get("BlockIDs").getValue()).values());
             BlockReader blockReader = new BlockReader(tagCollection, textureMap);
 
             blockList = new ArrayList<>();

@@ -10,6 +10,7 @@ public class BlockType {
 	private BlockFace south;
 	private TextureMap textureMap;
 	private String model;
+	private boolean backFaceCulled;
 	
 	public BlockType(TextureMap textureMap, String model) {
 		this.textureMap = textureMap;
@@ -60,25 +61,32 @@ public class BlockType {
 	public String getModel() {
 		return model;
 	}
-
 	
+	public boolean isBackFaceCulled() {
+		return backFaceCulled;
+	}
+
+	public void setBackFaceCulled(boolean backFaceCulled) {
+		this.backFaceCulled = backFaceCulled;
+	}
+
 	@Override
 	public String toString() {
 		return "BlockType [up=" + up + ", down=" + down + ", west=" + west + ", east=" + east + ", north=" + north
-				+ ", south=" + south + ", model=" + model + "]";
+				+ ", south=" + south + ", model=" + model + ", backFaceCulled=" + backFaceCulled + "]";
 	}
 
 	public boolean isValid() {
 		boolean valid = true;
-		if (up == null || !up.isValid()) {
+		if (up != null && !up.isValid()) {
 			valid = false;
 			System.err.println("up not valid");
 		}
-		if (down == null || !down.isValid()) {
+		if (down != null && !down.isValid()) {
 			valid = false;
 			System.err.println("down not valid");
 		}
-		if (west == null || !west.isValid()) {
+		if (west != null && !west.isValid()) {
 			valid = false;
 			System.err.println("west not valid");
 		}

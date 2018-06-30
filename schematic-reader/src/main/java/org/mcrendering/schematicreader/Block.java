@@ -41,37 +41,69 @@ public class Block {
 	}
 	
     public void init() {
-    	float[] positions = new float[72];
-    	System.arraycopy(getSouthPositions(), 0, positions, 0, 12);
-    	System.arraycopy(getNorthPositions(), 0, positions, 12, 12);
-    	System.arraycopy(getWestPositions(), 0, positions, 24, 12);
-    	System.arraycopy(getEastPositions(), 0, positions, 36, 12);
-    	System.arraycopy(getDownPositions(), 0, positions, 48, 12);
-    	System.arraycopy(getUpPositions(), 0, positions, 60, 12);
     	
-    	float[] textCoords = new float[48];
-    	System.arraycopy(getTexCoords(type.getSouth()), 0, textCoords, 0, 8);
-    	System.arraycopy(getTexCoords(type.getNorth()), 0, textCoords, 8, 8);
-    	System.arraycopy(getTexCoords(type.getWest()), 0, textCoords, 16, 8);
-    	System.arraycopy(getTexCoords(type.getEast()), 0, textCoords, 24, 8);
-    	System.arraycopy(getTexCoords(type.getDown()), 0, textCoords, 32, 8);
-    	System.arraycopy(getTexCoords(type.getUp()), 0, textCoords, 40, 8);
+    	int faces = 
+    			(type.getSouth() == null ? 0 : 1) + 
+    			(type.getNorth() == null ? 0 : 1) +
+    			(type.getWest() == null ? 0 : 1) +
+    			(type.getEast() == null ? 0 : 1) +
+    			(type.getDown() == null ? 0 : 1) +
+    			(type.getUp() == null ? 0 : 1);
+    	
+    	float[] positions = new float[12 * faces];
+    	float[] textCoords = new float[8 * faces];
+    	float[] normals = new float[12 * faces];
+    	int[] indices = new int[6 * faces];
+    	
+    	int index = 0;
+    	
+    	if (type.getSouth() != null) {
+        	System.arraycopy(getSouthPositions(), 0, positions, index * 12, 12);
+        	System.arraycopy(getTexCoords(type.getSouth()), 0, textCoords, index * 8, 8);
+        	System.arraycopy(getSouthNormal(), 0, normals, index * 12, 12);
+        	System.arraycopy(getSouthIndices(index * 4), 0, indices, index * 6, 6);
+        	index++;
+    	}
+    	
+    	if (type.getNorth() != null) {
+        	System.arraycopy(getNorthPositions(), 0, positions, index * 12, 12);
+        	System.arraycopy(getTexCoords(type.getNorth()), 0, textCoords, index * 8, 8);
+        	System.arraycopy(getNorthNormal(), 0, normals, index * 12, 12);
+        	System.arraycopy(getNorthIndices(index * 4), 0, indices, index * 6, 6);
+        	index++;
+    	}
 
-    	float[] normals = new float[72];
-    	System.arraycopy(getNormalCoordinates(getSouthNormal()), 0, normals, 0, 12);
-    	System.arraycopy(getNormalCoordinates(getNorthNormal()), 0, normals, 12, 12);
-    	System.arraycopy(getNormalCoordinates(getWestNormal()), 0, normals, 24, 12);
-    	System.arraycopy(getNormalCoordinates(getEastNormal()), 0, normals, 36, 12);
-    	System.arraycopy(getNormalCoordinates(getDownNormal()), 0, normals, 48, 12);
-    	System.arraycopy(getNormalCoordinates(getUpNormal()), 0, normals, 60, 12);
-    	
-    	int[] indices = new int[36];
-    	System.arraycopy(getSouthIndices(), 0, indices, 0, 6);
-    	System.arraycopy(getNorthIndices(), 0, indices, 6, 6);
-    	System.arraycopy(getWestIndices(), 0, indices, 12, 6);
-    	System.arraycopy(getEastIndices(), 0, indices, 18, 6);
-    	System.arraycopy(getDownIndices(), 0, indices, 24, 6);
-    	System.arraycopy(getUpIndices(), 0, indices, 30, 6);
+    	if (type.getWest() != null) {
+        	System.arraycopy(getWestPositions(), 0, positions, index * 12, 12);
+        	System.arraycopy(getTexCoords(type.getWest()), 0, textCoords, index * 8, 8);
+        	System.arraycopy(getWestNormal(), 0, normals, index * 12, 12);
+        	System.arraycopy(getWestIndices(index * 4), 0, indices, index * 6, 6);
+        	index++;
+    	}
+
+    	if (type.getEast() != null) {
+        	System.arraycopy(getEastPositions(), 0, positions, index * 12, 12);
+        	System.arraycopy(getTexCoords(type.getEast()), 0, textCoords, index * 8, 8);
+        	System.arraycopy(getEastNormal(), 0, normals, index * 12, 12);
+        	System.arraycopy(getEastIndices(index * 4), 0, indices, index * 6, 6);
+        	index++;
+    	}
+
+    	if (type.getDown() != null) {
+        	System.arraycopy(getDownPositions(), 0, positions, index * 12, 12);
+        	System.arraycopy(getTexCoords(type.getDown()), 0, textCoords, index * 8, 8);
+        	System.arraycopy(getDownNormal(), 0, normals, index * 12, 12);
+        	System.arraycopy(getDownIndices(index * 4), 0, indices, index * 6, 6);
+        	index++;
+    	}
+
+    	if (type.getUp() != null) {
+        	System.arraycopy(getUpPositions(), 0, positions, index * 12, 12);
+        	System.arraycopy(getTexCoords(type.getUp()), 0, textCoords, index * 8, 8);
+        	System.arraycopy(getUpNormal(), 0, normals, index * 12, 12);
+        	System.arraycopy(getUpIndices(index * 4), 0, indices, index * 6, 6);
+        	index++;
+    	}
 
     	FloatBuffer posBuffer = null;
         FloatBuffer textCoordsBuffer = null;
@@ -169,6 +201,7 @@ public class Block {
     }
 	
     private float[] getSouthPositions() {
+    	
     	BlockFace face = type.getSouth();
     	Vector3f from = new Vector3f(
     			(float)position.x + (float) face.getFrom().x / 16f - 0.5f, 
@@ -186,15 +219,15 @@ public class Block {
 	        from.x, to.y, from.z};
     }
     
-    private Vector3f getSouthNormal() {
-    	return new Vector3f(0f, 0f, 1f);
+    private float[] getSouthNormal() {
+    	return getNormalCoordinates(0f, 0f, 1f);
     }
     
-    private int[] getSouthIndices() {
-    	return new int[] {
+    private int[] getSouthIndices(int offset) {
+    	return addValue(new int[] {
     		0, 1, 2,
     		0, 2, 3
-    	};
+    	}, offset);
     }
     
     private float[] getNorthPositions() {
@@ -215,15 +248,15 @@ public class Block {
 	        from.x, to.y, from.z};
     }
     
-    private Vector3f getNorthNormal() {
-    	return new Vector3f(0f, 0f, -1f);
+    private float[] getNorthNormal() {
+    	return getNormalCoordinates(0f, 0f, -1f);
     }
 
-    private int[] getNorthIndices() {
-    	return new int[] {
-    		4, 6, 5,
-    		4, 7, 6
-    	};
+    private int[] getNorthIndices(int offset) {
+    	return addValue(new int[] {
+        		0, 2, 1,
+        		0, 3, 2
+        	}, offset);
     }
     
     private float[] getWestPositions() {
@@ -244,15 +277,15 @@ public class Block {
 	        from.x, to.y, from.z};
     }
     
-    private Vector3f getWestNormal() {
-    	return new Vector3f(-1f, 0f, 0f);
+    private float[] getWestNormal() {
+    	return getNormalCoordinates(-1f, 0f, 0f);
     }
 
-    private int[] getWestIndices() {
-    	return new int[] {
-    		8, 9, 10,
-    		8, 10, 11
-    	};
+    private int[] getWestIndices(int offset) {
+    	return addValue(new int[] {
+        		0, 1, 2,
+        		0, 2, 3
+        	}, offset);
     }
     
     private float[] getEastPositions() {
@@ -273,15 +306,15 @@ public class Block {
 	        from.x, to.y, from.z};
     }
     
-    private Vector3f getEastNormal() {
-    	return new Vector3f(1f, 0f, 0f);
+    private float[] getEastNormal() {
+    	return getNormalCoordinates(1f, 0f, 0f);
     }
 
-    private int[] getEastIndices() {
-    	return new int[] {
-    		12, 14, 13,
-    		12, 15, 14
-    	};
+    private int[] getEastIndices(int offset) {
+    	return addValue(new int[] {
+        		0, 2, 1,
+        		0, 3, 2
+        	}, offset);
     }
     
     private float[] getDownPositions() {
@@ -302,15 +335,15 @@ public class Block {
 	        from.x, from.y, to.z};
     }
     
-    private Vector3f getDownNormal() {
-    	return new Vector3f(0f, -1f, 0f);
+    private float[] getDownNormal() {
+    	return getNormalCoordinates(0f, -1f, 0f);
     }
     
-    private int[] getDownIndices() {
-    	return new int[] {
-    		16, 17, 18,
-    		16, 18, 19
-    	};
+    private int[] getDownIndices(int offset) {
+    	return addValue(new int[] {
+        		0, 1, 2,
+        		0, 2, 3
+        	}, offset);
     }
     
     private float[] getUpPositions() {
@@ -331,23 +364,23 @@ public class Block {
 	        from.x, from.y, to.z};
     }
     
-    private Vector3f getUpNormal() {
-    	return new Vector3f(0f, 1f, 0f);
+    private float[] getUpNormal() {
+    	return getNormalCoordinates(0f, 1f, 0f);
     }
 
-    private int[] getUpIndices() {
-    	return new int[] {
-    		20, 22, 21,
-    		20, 23, 22
-    	};
+    private int[] getUpIndices(int offset) {
+    	return addValue(new int[] {
+        		0, 2, 1,
+        		0, 3, 2
+        	}, offset);
     }
 
-    private float[] getNormalCoordinates(Vector3f normal) {
+    private float[] getNormalCoordinates(float x, float y, float z) {
     	return new float[] {
-        		normal.x, normal.y, normal.z,
-        		normal.x, normal.y, normal.z,
-        		normal.x, normal.y, normal.z,
-        		normal.x, normal.y, normal.z
+        		x, y, z,
+        		x, y, z,
+        		x, y, z,
+        		x, y, z
     	};
     }
     
@@ -367,4 +400,12 @@ public class Block {
     private float getV(int v, BlockFace face) {
     	return ((float) v + (float) face.getTextureOffset()) / (float) type.getTextureMap().getHeight();
     }
+    
+    private int[] addValue(int[] array, int value) {
+    	for (int i=0; i < array.length; i++) {
+    		array[i] += value;
+    	}
+    	return array;
+    }
+
 }

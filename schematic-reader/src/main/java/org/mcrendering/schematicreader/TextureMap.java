@@ -56,17 +56,20 @@ public class TextureMap {
 
 	private int id;
 
-    private int currentOffset = 0;
+    private int height = 0;
     
     private Map<String, Integer> textureOffset = new HashMap<>();
     private Map<String, ByteBuffer> textureByteBuffer = new HashMap<>();
     private Map<String, Integer> textureHeight = new HashMap<>();
     
-    private List<String> textures = new ArrayList<>();
+    private List<String> textureKeys = new ArrayList<>();
     
-    public int getTextureOffset(String texture) {
-    	if (textureOffset.containsKey(texture)) {
-    		return textureOffset.get(texture);
+    public int getTextureOffset(String texture, boolean tinted) {
+    	
+    	String key = texture + (tinted ? ":tinted" : "");
+    	
+    	if (textureOffset.containsKey(key)) {
+    		return textureOffset.get(key);
     	}
 
     	File textureFile;
@@ -76,7 +79,7 @@ public class TextureMap {
     		textureFile = Utils.getResource(String.format("minecraft/textures/%s.png", texture));
         	if (textureFile == null) {
         		System.err.println("No texture found for " + texture);
-        		return getTextureOffset("fallback");
+        		return getTextureOffset("fallback", false);
         	}	
     	}
     	
@@ -86,7 +89,7 @@ public class TextureMap {
 
             if (decoder.getWidth() != 16) {
             	System.err.println("Texture width not 16 : " + texture);
-            	return getTextureOffset("fallback");
+            	return getTextureOffset("fallback", false);
             }
             
             // Load texture contents into a byte buffer
@@ -95,19 +98,39 @@ public class TextureMap {
             decoder.decodeFlipped(buf, decoder.getWidth() * 4, Format.RGBA);
             buf.flip();
             
-            textureOffset.put(texture, currentOffset);
-        	textureByteBuffer.put(texture, buf);
-        	textureHeight.put(texture, decoder.getHeight());
-        	textures.add(texture);
-        	currentOffset += decoder.getHeight();
+            ByteBuffer buf2;
+            if (tinted) {
+            	byte[] tint = new byte[] {(byte)0x8d, (byte)0xb3, (byte)0x60, (byte)0xff}; 
+            	buf2 = ByteBuffer.allocateDirect(
+                        4 * decoder.getWidth() * decoder.getHeight());
+            	int length = buf.limit();
+            	for (int i = 0; i < length; i++) {
+            		buf2.put((byte)(((tint[i % 4] & 0xFF) * (buf.get() & 0xFF)) / 256));
+//            		if (i % 4 == 3) {
+//            			buf.get();
+//            			buf2.put((byte)255);
+//            		} else {
+//                		buf2.put((byte)(((tint[i % 4] & 0xFF) * (buf.get() & 0xFF)) / 256));
+//            		}
+            	}
+            	buf2.flip();
+            } else {
+            	buf2 = buf;
+            }
+            
+            textureOffset.put(key, height);
+        	textureByteBuffer.put(key, buf2);
+        	textureHeight.put(key, decoder.getHeight());
+        	textureKeys.add(key);
+        	height += decoder.getHeight();
             
 
     	} catch (Exception e) {
     		e.printStackTrace();
-    		return getTextureOffset("fallback");
+    		return getTextureOffset("fallback", false);
     	}
     	
-		return textureOffset.get(texture);
+		return textureOffset.get(key);
     }
 
     public void init() {
@@ -124,7 +147,7 @@ public class TextureMap {
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        for (String texture : textures) {
+        for (String texture : textureKeys) {
         	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, textureOffset.get(texture), getWidth(), textureHeight.get(texture), GL_RGBA, GL_UNSIGNED_BYTE, textureByteBuffer.get(texture));
         }
         
@@ -145,6 +168,6 @@ public class TextureMap {
     }
     
     public int getHeight() {
-    	return currentOffset;
+    	return height;
     }
 }

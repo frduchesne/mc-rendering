@@ -23,24 +23,21 @@ public class BlockReader {
 	private CompoundMap tagCollection;
 	private TextureMap textureMap;
 	
-	private Map<String, BlockType> blocks = new HashMap<>();
+	private Map<String, BlockType> blockTypes = new HashMap<>();
 	
 	public BlockReader(CompoundMap tagCollection, TextureMap textureMap) {
 		this.tagCollection = tagCollection;
 		this.textureMap = textureMap;
 	}
 	
-	public BlockType read(int index) {
-		
-		int block = ((byte[]) tagCollection.get("Blocks").getValue())[index] & 0xFF;
-		int data = ((byte[]) tagCollection.get("Data").getValue())[index] & 0xFF;
+	public BlockType read(int block, int data) {
 		
 		String key = String.format("%d:%d", block, data);
-		if (blocks.containsKey(key)) {
-			return blocks.get(key);
+		if (blockTypes.containsKey(key)) {
+			return blockTypes.get(key);
 		}
 		
-		blocks.put(key, null);
+		blockTypes.put(key, null);
 		
         String model = findModel(block, data);
         if (model == null) {
@@ -52,7 +49,8 @@ public class BlockReader {
         	return null;
         }
         
-        blocks.put(key, blockType);
+        blockType.setBlockId(block);
+        blockTypes.put(key, blockType);
         
         return blockType;
 	}
@@ -93,7 +91,8 @@ public class BlockReader {
     		}
     	}
     	
-    	BlockType blockType = new BlockType(textureMap, model);
+    	BlockType blockType = new BlockType();
+    	blockType.setModel(model);
     	
     	for (JsonObject jsonModel : jsonObjects) {
     		JsonElement elements = jsonModel.get("elements");
@@ -197,6 +196,10 @@ public class BlockReader {
     				boolean tinted = jsonFace.get("tintindex") == null ? false : true;
     				blockFace.setTextureOffset(textureMap.getTextureOffset(blockFace.getTextureOffset(), texture, tinted));
     				
+    				if (textureMap.isSemiTransparent(blockFace.getTextureOffset())) {
+    					blockType.setSemiTransparent(true);
+    				} 
+    				
     				JsonElement jsonUv = jsonFace.get("uv");
     				if (jsonUv == null) {
     					blockFace.setUvFrom(new Vector2f(0, 0));
@@ -234,11 +237,6 @@ public class BlockReader {
 	}
 	
 	private String findModel(int block, int data) {
-		
-		// air
-		if (block == 0) {
-			return null;
-		}
 		
 		// wood
 		if (block == 17) {
@@ -329,19 +327,44 @@ public class BlockReader {
 			}
 		}
 		
+		// stained glass
+		if (block == 95) {
+			switch(data) {
+			case (0) : return "glass_white";
+			case (1) : return "glass_orange";
+			case (2) : return "glass_magenta";
+			case (3) : return "glass_light_blue";
+			case (4) : return "glass_yellow";
+			case (5) : return "glass_lime";
+			case (6) : return "glass_pink";
+			case (7) : return "glass_gray";
+			case (8) : return "glass_light_gray";
+			case (9) : return "glass_cyan";
+			case (10) : return "glass_purple";
+			case (11) : return "glass_blue";
+			case (12) : return "glass_brown";
+			case (13) : return "glass_green";
+			case (14) : return "glass_red";
+			case (15) : return "glass_black";
+
+			default : System.err.println(String.format("no stained glass found for block %d data %d", block, data));
+			return "glass_green";			
+			}
+		}
+		
 		Tag<?> tag = ((CompoundMap) tagCollection.get("BlockIDs").getValue()).get(Integer.toString(block));
 		if (tag == null) {
 			System.err.println("tag not found for block " + block);
 			return null;
 		}
-		String blockId = (String) tag.getValue();		
+		String state = (String) tag.getValue();		
 		
-		System.out.println(String.format("block: %s, data:%d", blockId, data));
+		System.out.println(String.format("block: id:%d, data:%d, state:%s", block, data, state));
 		
-		File blockStateFile = Utils.getResource(String.format("minecraft/blockstates/%s.json", blockId.split(":")[1]));
+		File blockStateFile = Utils.getResource(String.format("minecraft/blockstates/%s.json", state.split(":")[1]));
 		
 		if (blockStateFile == null) {
-			System.err.println("no block state file found for block " + blockId);
+			System.err.println("no block state file found for block " + state);
 			return null;
 		}
 		

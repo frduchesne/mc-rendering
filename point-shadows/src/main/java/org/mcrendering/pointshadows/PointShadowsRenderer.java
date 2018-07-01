@@ -179,7 +179,7 @@ public class PointShadowsRenderer implements IRenderer {
         for (PointLight pointLight : pointLights) {
         	pointLight.updateTile(tileMap);
             setUniform(depthShaderProgram, pointLight.getMPosition(), pointLight.getShadowMatrices());
-            world.render();
+            world.render(camera.getPosition());
         }
         
         // Unbind
@@ -215,7 +215,7 @@ public class PointShadowsRenderer implements IRenderer {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, shadowMap.getDepthMapTexture());
         
-        world.render();
+        world.render(camera.getPosition());
 
         sceneShaderProgram.unbind();
     }

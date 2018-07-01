@@ -62,6 +62,7 @@ public class TextureMap {
     private Map<String, ByteBuffer> textureByteBuffer = new HashMap<>();
     private Map<Integer, ByteBuffer> textureByteBufferByOffset = new HashMap<>();
     private Map<String, Integer> textureHeight = new HashMap<>();
+    private Map<Integer, Boolean> transparencyByOffset = new HashMap<>();
     
     private List<String> textureKeys = new ArrayList<>();
     
@@ -132,6 +133,18 @@ public class TextureMap {
             	orig.flip();
             }
             
+            // transparency
+        	int length = buf.limit();
+        	boolean transparent = false;
+        	for (int i = 0; i < (length / 4); i++) {
+        		int alpha = buf.get(i * 4 + 3) & 0xFF;
+        		if (alpha != 0 && alpha < 254) {
+        			transparent = true;
+        			break;
+        		}
+        	}
+            transparencyByOffset.put(height, transparent);
+            
             textureOffset.put(key, height);
         	textureByteBuffer.put(key, buf);
         	textureByteBufferByOffset.put(height, buf);
@@ -148,6 +161,13 @@ public class TextureMap {
 		return textureOffset.get(key);
     }
 
+    public boolean isSemiTransparent(int textureOffset) {
+        if (textureOffset == -1) {
+        	return false;
+        }
+        return transparencyByOffset.get(textureOffset);
+    }
+    
     public void init() {
 
     	// Create a new OpenGL texture 

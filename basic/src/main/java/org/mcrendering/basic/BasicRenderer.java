@@ -63,11 +63,13 @@ public class BasicRenderer implements IRenderer {
 
         this.world.init();
         
-        camera.getPosition().x = 4.2f;
-        camera.getPosition().y = 2.1f;
-        camera.getPosition().z = 2.7f;
+        camera.getPosition().x = 8.3f;
+        camera.getPosition().y = 4.7f;
+        camera.getPosition().z = 5.1f;
         
-        camera.getRotation().y = 140f;
+        camera.getRotation().x = 7.2f;
+        camera.getRotation().y = 142f;
+        camera.getRotation().z = 0f;
         
         glClearColor(131f/255f, 175f/255f, 1.0f, 0.0f);
     }
@@ -105,7 +107,7 @@ public class BasicRenderer implements IRenderer {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, world.getTextureId());
        
-        world.render();
+        world.render(camera.getPosition());
 
         sceneShaderProgram.unbind();
     }

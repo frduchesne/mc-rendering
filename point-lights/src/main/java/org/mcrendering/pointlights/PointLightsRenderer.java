@@ -146,7 +146,7 @@ public class PointLightsRenderer implements IRenderer {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, world.getTextureId());
         
-        world.render();
+        world.render(camera.getPosition());
 
         sceneShaderProgram.unbind();
     }

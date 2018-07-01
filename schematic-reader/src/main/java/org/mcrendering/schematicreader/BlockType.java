@@ -8,18 +8,10 @@ public class BlockType {
 	private BlockFace east;
 	private BlockFace north;
 	private BlockFace south;
-	private TextureMap textureMap;
 	private String model;
 	private boolean backFaceCulled;
-	
-	public BlockType(TextureMap textureMap, String model) {
-		this.textureMap = textureMap;
-		this.model = model;
-	}
-	
-	public TextureMap getTextureMap() {
-		return this.textureMap;
-	}
+	private int blockId;
+	private boolean semiTransparent;
 	
 	public BlockFace getUp() {
 		return up;
@@ -57,25 +49,38 @@ public class BlockType {
 	public void setSouth(BlockFace south) {
 		this.south = south;
 	}
-	
 	public String getModel() {
 		return model;
 	}
-	
+	public void setModel(String model) {
+		this.model = model;
+	}
 	public boolean isBackFaceCulled() {
 		return backFaceCulled;
 	}
-
 	public void setBackFaceCulled(boolean backFaceCulled) {
 		this.backFaceCulled = backFaceCulled;
 	}
-
+	public int getBlockId() {
+		return blockId;
+	}
+	public void setBlockId(int blockId) {
+		this.blockId = blockId;
+	}
+	public boolean isSemiTransparent() {
+		return semiTransparent;
+	}
+	public void setSemiTransparent(boolean semiTransparent) {
+		this.semiTransparent = semiTransparent;
+	}
+	
 	@Override
 	public String toString() {
 		return "BlockType [up=" + up + ", down=" + down + ", west=" + west + ", east=" + east + ", north=" + north
-				+ ", south=" + south + ", model=" + model + ", backFaceCulled=" + backFaceCulled + "]";
+				+ ", south=" + south + ", model=" + model + ", backFaceCulled=" + backFaceCulled + ", blockId="
+				+ blockId + "]";
 	}
-
+	
 	public boolean isValid() {
 		boolean valid = true;
 		if (up != null && !up.isValid()) {

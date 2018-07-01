@@ -40,8 +40,8 @@ public class Block {
 		return "Block [position=" + position + ", type=" + type + "]";
 	}
 	
-    public void init() {
-    	
+    public void init(TextureMap textureMap) {
+
     	int faces = 
     			(type.getSouth() == null ? 0 : 1) + 
     			(type.getNorth() == null ? 0 : 1) +
@@ -59,7 +59,7 @@ public class Block {
     	
     	if (type.getSouth() != null) {
         	System.arraycopy(getSouthPositions(), 0, positions, index * 12, 12);
-        	System.arraycopy(getTexCoords(type.getSouth()), 0, textCoords, index * 8, 8);
+        	System.arraycopy(getTexCoords(type.getSouth(), textureMap), 0, textCoords, index * 8, 8);
         	System.arraycopy(getSouthNormal(), 0, normals, index * 12, 12);
         	System.arraycopy(getSouthIndices(index * 4), 0, indices, index * 6, 6);
         	index++;
@@ -67,7 +67,7 @@ public class Block {
     	
     	if (type.getNorth() != null) {
         	System.arraycopy(getNorthPositions(), 0, positions, index * 12, 12);
-        	System.arraycopy(getTexCoords(type.getNorth()), 0, textCoords, index * 8, 8);
+        	System.arraycopy(getTexCoords(type.getNorth(), textureMap), 0, textCoords, index * 8, 8);
         	System.arraycopy(getNorthNormal(), 0, normals, index * 12, 12);
         	System.arraycopy(getNorthIndices(index * 4), 0, indices, index * 6, 6);
         	index++;
@@ -75,7 +75,7 @@ public class Block {
 
     	if (type.getWest() != null) {
         	System.arraycopy(getWestPositions(), 0, positions, index * 12, 12);
-        	System.arraycopy(getTexCoords(type.getWest()), 0, textCoords, index * 8, 8);
+        	System.arraycopy(getTexCoords(type.getWest(), textureMap), 0, textCoords, index * 8, 8);
         	System.arraycopy(getWestNormal(), 0, normals, index * 12, 12);
         	System.arraycopy(getWestIndices(index * 4), 0, indices, index * 6, 6);
         	index++;
@@ -83,7 +83,7 @@ public class Block {
 
     	if (type.getEast() != null) {
         	System.arraycopy(getEastPositions(), 0, positions, index * 12, 12);
-        	System.arraycopy(getTexCoords(type.getEast()), 0, textCoords, index * 8, 8);
+        	System.arraycopy(getTexCoords(type.getEast(), textureMap), 0, textCoords, index * 8, 8);
         	System.arraycopy(getEastNormal(), 0, normals, index * 12, 12);
         	System.arraycopy(getEastIndices(index * 4), 0, indices, index * 6, 6);
         	index++;
@@ -91,7 +91,7 @@ public class Block {
 
     	if (type.getDown() != null) {
         	System.arraycopy(getDownPositions(), 0, positions, index * 12, 12);
-        	System.arraycopy(getTexCoords(type.getDown()), 0, textCoords, index * 8, 8);
+        	System.arraycopy(getTexCoords(type.getDown(), textureMap), 0, textCoords, index * 8, 8);
         	System.arraycopy(getDownNormal(), 0, normals, index * 12, 12);
         	System.arraycopy(getDownIndices(index * 4), 0, indices, index * 6, 6);
         	index++;
@@ -99,7 +99,7 @@ public class Block {
 
     	if (type.getUp() != null) {
         	System.arraycopy(getUpPositions(), 0, positions, index * 12, 12);
-        	System.arraycopy(getTexCoords(type.getUp()), 0, textCoords, index * 8, 8);
+        	System.arraycopy(getTexCoords(type.getUp(), textureMap), 0, textCoords, index * 8, 8);
         	System.arraycopy(getUpNormal(), 0, normals, index * 12, 12);
         	System.arraycopy(getUpIndices(index * 4), 0, indices, index * 6, 6);
         	index++;
@@ -354,21 +354,21 @@ public class Block {
     	};
     }
     
-    private float[] getTexCoords(BlockFace face) {
+    private float[] getTexCoords(BlockFace face, TextureMap textureMap) {
     	return new float[] {
-      			getU(face.getUvFrom().x), getV(face.getUvFrom().y, face),
-      			getU(face.getUvTo().x), getV(face.getUvFrom().y, face),
-      			getU(face.getUvTo().x), getV(face.getUvTo().y, face),
-      			getU(face.getUvFrom().x), getV(face.getUvTo().y, face)
+      			getU(face.getUvFrom().x, textureMap), getV(face.getUvFrom().y, face, textureMap),
+      			getU(face.getUvTo().x, textureMap), getV(face.getUvFrom().y, face, textureMap),
+      			getU(face.getUvTo().x, textureMap), getV(face.getUvTo().y, face, textureMap),
+      			getU(face.getUvFrom().x, textureMap), getV(face.getUvTo().y, face, textureMap)
     	};
     }
     
-    private float getU(float u) {
-    	return u / (float) type.getTextureMap().getWidth();
+    private float getU(float u, TextureMap textureMap) {
+    	return u / (float) textureMap.getWidth();
     }
     
-    private float getV(float v, BlockFace face) {
-    	return (v + (float) face.getTextureOffset()) / (float) type.getTextureMap().getHeight();
+    private float getV(float v, BlockFace face, TextureMap textureMap) {
+    	return (v + (float) face.getTextureOffset()) / (float) textureMap.getHeight();
     }
     
     private int[] addValue(int[] array, int value) {

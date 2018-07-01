@@ -1,7 +1,7 @@
 package org.mcrendering.schematicreader;
 
+import org.joml.Matrix3f;
 import org.joml.Vector3f;
-import org.joml.Vector3i;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
@@ -16,16 +16,16 @@ import org.lwjgl.system.MemoryUtil;
 
 public class Block {
 
-	private Vector3i position;
+	private Vector3f position;
 	private BlockType type;
     private int vaoId;
     private List<Integer> vboIdList;
     private int vertexCount;
 	
-	public Vector3i getPosition() {
+	public Vector3f getPosition() {
 		return position;
 	}
-	public void setPosition(Vector3i position) {
+	public void setPosition(Vector3f position) {
 		this.position = position;
 	}
 	public BlockType getType() {
@@ -199,24 +199,19 @@ public class Block {
         glBindVertexArray(0);
         glDeleteVertexArrays(vaoId);
     }
-	
+    
     private float[] getSouthPositions() {
     	
     	BlockFace face = type.getSouth();
-    	Vector3f from = new Vector3f(
-    			(float)position.x + (float) face.getFrom().x / 16f - 0.5f, 
-    			(float)position.y + (float) face.getFrom().y / 16f - 0.5f, 
-    			(float)position.z + (float) face.getTo().z / 16f - 0.5f);
-    	Vector3f to = new Vector3f(
-    			(float)position.x + (float) face.getTo().x / 16f - 0.5f, 
-    			(float)position.y + (float) face.getTo().y / 16f - 0.5f, 
-    			(float)position.z + (float) face.getTo().z / 16f - 0.5f);
+    	Vector3f from = face.getFrom();
+    	Vector3f to = face.getTo();
     	
-    	return new float[] {
-	        from.x, from.y, from.z,
-	        to.x, from.y, from.z,
-	        to.x, to.y, from.z,
-	        from.x, to.y, from.z};
+    	return transform(new Vector3f[] {
+	        new Vector3f(from.x, from.y, to.z),
+	        new Vector3f(to.x, from.y, to.z),
+	        new Vector3f(to.x, to.y, to.z),
+	        new Vector3f(from.x, to.y, to.z)}, 
+    			face.getRotation());
     }
     
     private float[] getSouthNormal() {
@@ -232,20 +227,15 @@ public class Block {
     
     private float[] getNorthPositions() {
     	BlockFace face = type.getNorth();
-    	Vector3f from = new Vector3f(
-    			(float)position.x + (float) face.getFrom().x / 16f - 0.5f, 
-    			(float)position.y + (float) face.getFrom().y / 16f - 0.5f, 
-    			(float)position.z + (float) face.getFrom().z / 16f - 0.5f);
-    	Vector3f to = new Vector3f(
-    			(float)position.x + (float) face.getTo().x / 16f - 0.5f, 
-    			(float)position.y + (float) face.getTo().y / 16f - 0.5f, 
-    			(float)position.z + (float) face.getFrom().z / 16f - 0.5f);
+    	Vector3f from = face.getFrom();
+    	Vector3f to = face.getTo();
     	
-    	return new float[] {
-	        from.x, from.y, from.z,
-	        to.x, from.y, from.z,
-	        to.x, to.y, from.z,
-	        from.x, to.y, from.z};
+    	return transform(new Vector3f[] {
+    	        new Vector3f(from.x, from.y, from.z),
+    	        new Vector3f(to.x, from.y, from.z),
+    	        new Vector3f(to.x, to.y, from.z),
+    	        new Vector3f(from.x, to.y, from.z)}, 
+    			face.getRotation());
     }
     
     private float[] getNorthNormal() {
@@ -261,20 +251,15 @@ public class Block {
     
     private float[] getWestPositions() {
     	BlockFace face = type.getWest();
-    	Vector3f from = new Vector3f(
-    			(float)position.x + (float) face.getFrom().x / 16f - 0.5f, 
-    			(float)position.y + (float) face.getFrom().y / 16f - 0.5f, 
-    			(float)position.z + (float) face.getFrom().z / 16f - 0.5f);
-    	Vector3f to = new Vector3f(
-    			(float)position.x + (float) face.getFrom().x / 16f - 0.5f, 
-    			(float)position.y + (float) face.getTo().y / 16f - 0.5f, 
-    			(float)position.z + (float) face.getTo().z / 16f - 0.5f);
+    	Vector3f from = face.getFrom();
+    	Vector3f to = face.getTo();
     	
-    	return new float[] {
-	        from.x, from.y, from.z,
-	        from.x, from.y, to.z,
-	        from.x, to.y, to.z,
-	        from.x, to.y, from.z};
+    	return transform(new Vector3f[] {
+    	        new Vector3f(from.x, from.y, from.z),
+    	        new Vector3f(from.x, from.y, to.z),
+    	        new Vector3f(from.x, to.y, to.z),
+    	        new Vector3f(from.x, to.y, from.z)}, 
+    			face.getRotation());
     }
     
     private float[] getWestNormal() {
@@ -290,20 +275,15 @@ public class Block {
     
     private float[] getEastPositions() {
     	BlockFace face = type.getEast();
-    	Vector3f from = new Vector3f(
-    			(float)position.x + (float) face.getTo().x / 16f - 0.5f, 
-    			(float)position.y + (float) face.getFrom().y / 16f - 0.5f, 
-    			(float)position.z + (float) face.getFrom().z / 16f - 0.5f);
-    	Vector3f to = new Vector3f(
-    			(float)position.x + (float) face.getTo().x / 16f - 0.5f, 
-    			(float)position.y + (float) face.getTo().y / 16f - 0.5f, 
-    			(float)position.z + (float) face.getTo().z / 16f - 0.5f);
+    	Vector3f from = face.getFrom();
+    	Vector3f to = face.getTo();
     	
-    	return new float[] {
-	        from.x, from.y, from.z,
-	        from.x, from.y, to.z,
-	        from.x, to.y, to.z,
-	        from.x, to.y, from.z};
+    	return transform(new Vector3f[] {
+    	        new Vector3f(to.x, from.y, from.z),
+    	        new Vector3f(to.x, from.y, to.z),
+    	        new Vector3f(to.x, to.y, to.z),
+    	        new Vector3f(to.x, to.y, from.z)}, 
+    			face.getRotation());
     }
     
     private float[] getEastNormal() {
@@ -319,20 +299,15 @@ public class Block {
     
     private float[] getDownPositions() {
     	BlockFace face = type.getDown();
-    	Vector3f from = new Vector3f(
-    			(float)position.x + (float) face.getFrom().x / 16f - 0.5f, 
-    			(float)position.y + (float) face.getFrom().y / 16f - 0.5f, 
-    			(float)position.z + (float) face.getFrom().z / 16f - 0.5f);
-    	Vector3f to = new Vector3f(
-    			(float)position.x + (float) face.getTo().x / 16f - 0.5f, 
-    			(float)position.y + (float) face.getFrom().y / 16f - 0.5f, 
-    			(float)position.z + (float) face.getTo().z / 16f - 0.5f);
+    	Vector3f from = face.getFrom();
+    	Vector3f to = face.getTo();
     	
-    	return new float[] {
-	        from.x, from.y, from.z,
-	        to.x, from.y, from.z,
-	        to.x, from.y, to.z,
-	        from.x, from.y, to.z};
+    	return transform(new Vector3f[] {
+    	        new Vector3f(from.x, from.y, from.z),
+    	        new Vector3f(to.x, from.y, from.z),
+    	        new Vector3f(to.x, from.y, to.z),
+    	        new Vector3f(from.x, from.y, to.z)}, 
+    			face.getRotation());
     }
     
     private float[] getDownNormal() {
@@ -348,20 +323,15 @@ public class Block {
     
     private float[] getUpPositions() {
     	BlockFace face = type.getUp();
-    	Vector3f from = new Vector3f(
-    			(float)position.x + (float) face.getFrom().x / 16f - 0.5f, 
-    			(float)position.y + (float) face.getTo().y / 16f - 0.5f, 
-    			(float)position.z + (float) face.getFrom().z / 16f - 0.5f);
-    	Vector3f to = new Vector3f(
-    			(float)position.x + (float) face.getTo().x / 16f - 0.5f, 
-    			(float)position.y + (float) face.getTo().y / 16f - 0.5f, 
-    			(float)position.z + (float) face.getTo().z / 16f - 0.5f);
+    	Vector3f from = face.getFrom();
+    	Vector3f to = face.getTo();
     	
-    	return new float[] {
-	        from.x, from.y, from.z,
-	        to.x, from.y, from.z,
-	        to.x, from.y, to.z,
-	        from.x, from.y, to.z};
+    	return transform(new Vector3f[] {
+    	        new Vector3f(from.x, to.y, from.z),
+    	        new Vector3f(to.x, to.y, from.z),
+    	        new Vector3f(to.x, to.y, to.z),
+    	        new Vector3f(from.x, to.y, to.z)}, 
+    			face.getRotation());
     }
     
     private float[] getUpNormal() {
@@ -393,12 +363,12 @@ public class Block {
     	};
     }
     
-    private float getU(int u) {
-    	return (float) u / type.getTextureMap().getWidth();
+    private float getU(float u) {
+    	return u / (float) type.getTextureMap().getWidth();
     }
     
-    private float getV(int v, BlockFace face) {
-    	return ((float) v + (float) face.getTextureOffset()) / (float) type.getTextureMap().getHeight();
+    private float getV(float v, BlockFace face) {
+    	return (v + (float) face.getTextureOffset()) / (float) type.getTextureMap().getHeight();
     }
     
     private int[] addValue(int[] array, int value) {
@@ -406,6 +376,38 @@ public class Block {
     		array[i] += value;
     	}
     	return array;
+    }
+
+    private float[] transform(Vector3f[] positions, FaceRotation rotation) {
+    	Matrix3f matrix = new Matrix3f();
+    	if (rotation != null) {
+    		if ("x".equals(rotation.getAxis())) {
+    			matrix.rotateX((float)Math.toRadians(rotation.getAngle()));
+    		} else if ("y".equals(rotation.getAxis())) {
+    			matrix.rotateY((float)Math.toRadians(rotation.getAngle()));
+    		} else if ("z".equals(rotation.getAxis())) {
+    			matrix.rotateZ((float)Math.toRadians(rotation.getAngle()));
+    		}
+    	}
+    	float[] coordinates = new float[positions.length * 3];
+    	for (int i=0; i < positions.length; i++) {
+    		
+    		Vector3f pos = new Vector3f(
+        			positions[i].x / 16f - 0.5f, 
+        			positions[i].y / 16f - 0.5f, 
+        			positions[i].z / 16f - 0.5f);
+    		
+    		pos = matrix.transform(pos);
+    		pos.x += position.x;
+    		pos.y += position.y;
+    		pos.z += position.z;
+    		
+    		int j = i * 3;
+    		coordinates[j] = pos.x;
+    		coordinates[j + 1] = pos.y;
+    		coordinates[j + 2] = pos.z;
+    	}
+    	return coordinates;
     }
 
 }

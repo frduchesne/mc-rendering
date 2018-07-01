@@ -106,3 +106,4 @@ public class BlockType {
 		return valid;
 	}
 }
+

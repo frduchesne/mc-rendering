@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.joml.Vector2i;
-import org.joml.Vector3i;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
 
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.Tag;
@@ -102,13 +102,20 @@ public class BlockReader {
     		}
     		
     		for (JsonElement element : elements.getAsJsonArray()) {
-    			Vector3i from = getVector3i(element.getAsJsonObject(), "from");
-    			Vector3i to = getVector3i(element.getAsJsonObject(), "to");
-    			JsonElement faces = element.getAsJsonObject().get("faces");
+    			JsonObject elementObj = element.getAsJsonObject();
+    			Vector3f from = getVector3f(elementObj, "from");
+    			Vector3f to = getVector3f(elementObj, "to");
+    			JsonElement faces = elementObj.get("faces");
     			if (faces == null) {
     				System.err.println("no faces for element " + element);
     				continue;
     			}
+				
+    			JsonObject rotation = null;
+    			if (elementObj.get("rotation") != null) {
+    				rotation = elementObj.get("rotation").getAsJsonObject();
+    			}
+
     			for (Map.Entry<String, JsonElement> face : faces.getAsJsonObject().entrySet()) {
     				BlockFace blockFace = null;
     				switch(face.getKey()) {
@@ -193,12 +200,18 @@ public class BlockReader {
     				
     				JsonElement jsonUv = jsonFace.get("uv");
     				if (jsonUv == null) {
-    					blockFace.setUvFrom(new Vector2i(0, 0));
-    					blockFace.setUvTo(new Vector2i(16, 16));
+    					blockFace.setUvFrom(new Vector2f(0, 0));
+    					blockFace.setUvTo(new Vector2f(16, 16));
     				} else {
         				JsonArray uv = jsonUv.getAsJsonArray();
-        				blockFace.setUvFrom(new Vector2i(uv.get(0).getAsInt(), uv.get(1).getAsInt()));
-        				blockFace.setUvTo(new Vector2i(uv.get(2).getAsInt(), uv.get(3).getAsInt()));
+        				blockFace.setUvFrom(new Vector2f(uv.get(0).getAsFloat(), uv.get(1).getAsFloat()));
+        				blockFace.setUvTo(new Vector2f(uv.get(2).getAsFloat(), uv.get(3).getAsFloat()));
+    				}
+    				
+    				if (rotation != null) {
+    					blockFace.setRotation(new FaceRotation());
+    					blockFace.getRotation().setAngle(rotation.get("angle").getAsFloat());
+    					blockFace.getRotation().setAxis(rotation.get("axis").getAsString());
     				}    				
     			}
     		}
@@ -212,13 +225,13 @@ public class BlockReader {
     	return blockType;
 	}
 	
-	private Vector3i getVector3i(JsonObject jsonObject, String property) {
+	private Vector3f getVector3f(JsonObject jsonObject, String property) {
 		JsonElement element = jsonObject.get(property);
 		if (element == null || !element.isJsonArray()) {
 			return null;
 		}
 		JsonArray array = element.getAsJsonArray();
-		return new Vector3i(array.get(0).getAsInt(), array.get(1).getAsInt(), array.get(2).getAsInt());
+		return new Vector3f(array.get(0).getAsFloat(), array.get(1).getAsFloat(), array.get(2).getAsFloat());
 	}
 	
 	private String findModel(int block, int data) {
@@ -270,8 +283,30 @@ public class BlockReader {
 			}
 		}
 
+		// grass
 		if (block == 31) {
 			return "tall_grass";
+		}
+		
+		// flowers
+		if (block == 37) {
+			return "dandelion";
+		}
+		
+		if (block == 38) {
+			switch(data) {
+			case (0) : return "poppy";
+			case (1) : return "orchid";
+			case (2) : return "allium";
+			case (3) : return "azure_bluet";
+			case (4) : return "red_tulip";
+			case (5) : return "orange_tulip";
+			case (6) : return "white_tulip";
+			case (7) : return "pink_tulip";
+			case (8) : return "daisy";
+			default : System.err.println(String.format("no flower found for block %d data %d", block, data));
+			return "poppy";
+			}
 		}
 		
 		Tag<?> tag = ((CompoundMap) tagCollection.get("BlockIDs").getValue()).get(Integer.toString(block));

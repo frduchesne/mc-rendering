@@ -106,12 +106,6 @@ public class TextureMap {
             	int length = buf.limit();
             	for (int i = 0; i < length; i++) {
             		buf2.put((byte)(((tint[i % 4] & 0xFF) * (buf.get() & 0xFF)) / 256));
-//            		if (i % 4 == 3) {
-//            			buf.get();
-//            			buf2.put((byte)255);
-//            		} else {
-//                		buf2.put((byte)(((tint[i % 4] & 0xFF) * (buf.get() & 0xFF)) / 256));
-//            		}
             	}
             	buf2.flip();
             } else {

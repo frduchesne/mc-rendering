@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.joml.Vector3i;
+import org.joml.Vector3f;
 
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
@@ -35,7 +35,7 @@ public class SchematicReader {
             			if (blockType != null) {
             				Block block = new Block();
             				block.setType(blockType);
-            				block.setPosition(new Vector3i(w, h, l));
+            				block.setPosition(new Vector3f((float)w, (float)h, (float)l));
             				blockList.add(block);
             			}
             		}

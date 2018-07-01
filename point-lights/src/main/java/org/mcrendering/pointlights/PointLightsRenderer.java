@@ -87,10 +87,14 @@ public class PointLightsRenderer implements IRenderer {
         
         
         this.world.init();
+                
+        camera.getPosition().x = 8.3f;
+        camera.getPosition().y = 4.7f;
+        camera.getPosition().z = 5.1f;
         
-        camera.getPosition().x = 5f;
-        camera.getPosition().y = 5f;
-        camera.getPosition().z = 9f;
+        camera.getRotation().x = 7.2f;
+        camera.getRotation().y = 142f;
+        camera.getRotation().z = 0f;
     }
 
     @Override

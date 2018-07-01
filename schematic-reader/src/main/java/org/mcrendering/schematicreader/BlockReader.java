@@ -298,7 +298,7 @@ public class BlockReader {
 			case (0) : return "poppy";
 			case (1) : return "orchid";
 			case (2) : return "allium";
-			case (3) : return "azure_bluet";
+			case (3) : return "houstonia";
 			case (4) : return "red_tulip";
 			case (5) : return "orange_tulip";
 			case (6) : return "white_tulip";
@@ -306,6 +306,27 @@ public class BlockReader {
 			case (8) : return "daisy";
 			default : System.err.println(String.format("no flower found for block %d data %d", block, data));
 			return "poppy";
+			}
+		}
+		
+		if (block == 175) {
+			switch(data) {
+			case (0) : return "double_sunflower_bottom";
+			case (1) : return "double_syringa_bottom";
+			case (2) : return "double_grass_bottom";
+			case (3) : return "double_fern_bottom";
+			case (4) : return "double_rose_bottom";
+			case (5) : return "double_paeonia_bottom";
+
+			case (8) : return "double_sunflower_top";
+			case (9) : return "double_syringa_top";
+			case (10) : return "double_grass_top";
+			case (11) : return "double_fern_top";
+			case (12) : return "double_rose_top";
+			case (13) : return "double_paeonia_top";
+
+			default : System.err.println(String.format("no flower found for block %d data %d", block, data));
+			return "double_sunflower_bottom";			
 			}
 		}
 		

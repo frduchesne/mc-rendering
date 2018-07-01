@@ -172,6 +172,13 @@ public class BlockReader {
     				if (jsonCull != null) {
     					blockType.setBackFaceCulled(true);
     				}
+
+    				if (from != null) {
+    					blockFace.setFrom(from);
+    				}
+    				if (to != null) {
+    					blockFace.setTo(to);
+    				}
     				
     				JsonElement jsonTexture = jsonFace.get("texture");
     				if (jsonTexture == null) {
@@ -179,15 +186,6 @@ public class BlockReader {
     					continue;
     				} 
     				String texture = jsonTexture.getAsString();
-    				if ("#overlay".equals(texture)) {
-    					continue;
-    				}
-    				if (from != null) {
-    					blockFace.setFrom(from);
-    				}
-    				if (to != null) {
-    					blockFace.setTo(to);
-    				}
     				while (texture != null && texture.startsWith("#")) {
     					texture = textures.get(texture.substring(1));
     				}
@@ -195,8 +193,9 @@ public class BlockReader {
     					System.err.println("no texture found for " + jsonTexture);
     					continue;
     				}
+    				
     				boolean tinted = jsonFace.get("tintindex") == null ? false : true;
-    				blockFace.setTextureOffset(textureMap.getTextureOffset(texture, tinted));
+    				blockFace.setTextureOffset(textureMap.getTextureOffset(blockFace.getTextureOffset(), texture, tinted));
     				
     				JsonElement jsonUv = jsonFace.get("uv");
     				if (jsonUv == null) {

@@ -60,13 +60,14 @@ public class TextureMap {
     
     private Map<String, Integer> textureOffset = new HashMap<>();
     private Map<String, ByteBuffer> textureByteBuffer = new HashMap<>();
+    private Map<Integer, ByteBuffer> textureByteBufferByOffset = new HashMap<>();
     private Map<String, Integer> textureHeight = new HashMap<>();
     
     private List<String> textureKeys = new ArrayList<>();
     
-    public int getTextureOffset(String texture, boolean tinted) {
+    public int getTextureOffset(int textureOffsetOrig, String texture, boolean tinted) {
     	
-    	String key = texture + (tinted ? ":tinted" : "");
+    	String key = texture + (tinted ? ":tinted" : "") + ":" + textureOffsetOrig;
     	
     	if (textureOffset.containsKey(key)) {
     		return textureOffset.get(key);
@@ -79,7 +80,7 @@ public class TextureMap {
     		textureFile = Utils.getResource(String.format("minecraft/textures/%s.png", texture));
         	if (textureFile == null) {
         		System.err.println("No texture found for " + texture);
-        		return getTextureOffset("fallback", false);
+        		return getFallbackTextureOffset();
         	}	
     	}
     	
@@ -89,7 +90,7 @@ public class TextureMap {
 
             if (decoder.getWidth() != 16) {
             	System.err.println("Texture width not 16 : " + texture);
-            	return getTextureOffset("fallback", false);
+        		return getFallbackTextureOffset();
             }
             
             // Load texture contents into a byte buffer
@@ -98,22 +99,42 @@ public class TextureMap {
             decoder.decodeFlipped(buf, decoder.getWidth() * 4, Format.RGBA);
             buf.flip();
             
-            ByteBuffer buf2;
             if (tinted) {
             	byte[] tint = new byte[] {(byte)0x8d, (byte)0xb3, (byte)0x60, (byte)0xff}; 
-            	buf2 = ByteBuffer.allocateDirect(
+            	ByteBuffer buf2 = ByteBuffer.allocateDirect(
                         4 * decoder.getWidth() * decoder.getHeight());
             	int length = buf.limit();
             	for (int i = 0; i < length; i++) {
             		buf2.put((byte)(((tint[i % 4] & 0xFF) * (buf.get() & 0xFF)) / 256));
             	}
             	buf2.flip();
-            } else {
-            	buf2 = buf;
+            	buf = buf2;
+            }
+            
+            if (textureOffsetOrig != -1 && textureByteBufferByOffset.containsKey(textureOffsetOrig)) {
+            	// get orig texture
+            	ByteBuffer orig = textureByteBufferByOffset.get(textureOffsetOrig);
+            	ByteBuffer buf2 = ByteBuffer.allocateDirect(
+                        4 * decoder.getWidth() * decoder.getHeight());
+            	int length = buf.limit();
+            	for (int i = 0; i < (length / 4); i++) {
+            		byte[] origColor = new byte[] { orig.get(), orig.get(), orig.get(), orig.get()}; 
+            		byte[] currentColor = new byte[] { buf.get(), buf.get(), buf.get(), buf.get()}; 
+            		// test alpha
+            		byte[] destColor = currentColor[3] == 0 ? origColor : currentColor;
+        			buf2.put(destColor[0]);
+        			buf2.put(destColor[1]);
+        			buf2.put(destColor[2]);
+        			buf2.put(destColor[3]);
+            	}
+            	buf2.flip();
+            	buf = buf2;
+            	orig.flip();
             }
             
             textureOffset.put(key, height);
-        	textureByteBuffer.put(key, buf2);
+        	textureByteBuffer.put(key, buf);
+        	textureByteBufferByOffset.put(height, buf);
         	textureHeight.put(key, decoder.getHeight());
         	textureKeys.add(key);
         	height += decoder.getHeight();
@@ -121,7 +142,7 @@ public class TextureMap {
 
     	} catch (Exception e) {
     		e.printStackTrace();
-    		return getTextureOffset("fallback", false);
+    		return getFallbackTextureOffset();
     	}
     	
 		return textureOffset.get(key);
@@ -164,4 +185,9 @@ public class TextureMap {
     public int getHeight() {
     	return height;
     }
+        
+    private int getFallbackTextureOffset() {
+    	return getTextureOffset(-1, "fallback", false);
+    }
+
 }

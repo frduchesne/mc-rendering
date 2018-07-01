@@ -9,7 +9,7 @@ public class BlockFace {
 	private Vector3f to;
 	private Vector2f uvFrom;
 	private Vector2f uvTo;
-	private int textureOffset;
+	private int textureOffset = -1;
 	private FaceRotation rotation;
 	
 	public int getTextureOffset() {

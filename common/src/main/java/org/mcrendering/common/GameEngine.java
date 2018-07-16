@@ -11,35 +11,21 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 public class GameEngine implements Runnable {
-
-    public static final int TARGET_FPS = 75;
-
-    public static final int TARGET_UPS = 30;
     
-    private static final float MOUSE_SENSITIVITY = 0.2f;
-    
+    private static final float MOUSE_SENSITIVITY = 0.2f;    
     private static final float CAMERA_POS_STEP = 0.10f;
 
     private final Vector3f cameraInc;
-
     private final Camera camera;
-
     private final Window window;
-
     private final Thread gameLoopThread;
-
-    private final Timer timer;
-
     private final IRenderer renderer;
-
     private final MouseInput mouseInput;
-
     private double lastFps;
-    
     private int fps;
-    
     private String windowTitle;
-    
+    private double lastInput;
+
     public GameEngine(String windowTitle, IRenderer renderer) throws Exception {
         this(windowTitle, 0, 0, renderer);
     }
@@ -52,7 +38,6 @@ public class GameEngine implements Runnable {
         window = new Window(windowTitle, width, height);
         mouseInput = new MouseInput();
         this.renderer = renderer;
-        timer = new Timer();
     }
 
     public void start() {
@@ -78,31 +63,21 @@ public class GameEngine implements Runnable {
 
     protected void init() throws Exception {
         window.init();
-        timer.init();
         mouseInput.init(window);
         renderer.initApplication(window, camera);
         renderer.initRendering();
-        lastFps = timer.getTime();
+        lastFps = getTime();
+        lastInput = getTime();
         fps = 0;
     }
 
     protected void gameLoop() {
-        float elapsedTime;
-        float accumulator = 0f;
-        float interval = 1f / TARGET_UPS;
 
         boolean running = true;
         while (running && !window.windowShouldClose()) {
-            elapsedTime = timer.getElapsedTime();
-            accumulator += elapsedTime;
 
             input();
-
-            while (accumulator >= interval) {
-                update(interval);
-                accumulator -= interval;
-            }
-
+            update();
             render();
         }
     }
@@ -111,30 +86,36 @@ public class GameEngine implements Runnable {
         renderer.cleanupRendering();
         renderer.cleanupApplication();
     }
-
+    
     protected void input() {
+    	
+    	double time = getTime();
+    	// 10 = 60ms
+    	double inc = (time - lastInput) * 10d / (60d / 1000d);
+    	lastInput = time;
+    	
         mouseInput.input(window);
         cameraInc.set(0, 0, 0);
         if (window.isKeyPressed(GLFW_KEY_W)) {
-            cameraInc.z = -1;
+            cameraInc.z -= inc;
         } else if (window.isKeyPressed(GLFW_KEY_S)) {
-            cameraInc.z = 1;
+            cameraInc.z += inc;
         }
         if (window.isKeyPressed(GLFW_KEY_A)) {
-            cameraInc.x = -1;
+            cameraInc.x -= inc;
         } else if (window.isKeyPressed(GLFW_KEY_D)) {
-            cameraInc.x = 1;
+            cameraInc.x += inc;
         }
         if (window.isKeyPressed(GLFW_KEY_Z)) {
-            cameraInc.y = -1;
+            cameraInc.y -= inc;
         } else if (window.isKeyPressed(GLFW_KEY_X)) {
-            cameraInc.y = 1;
+            cameraInc.y += inc;
         }
 
         renderer.input(mouseInput);
     }
 
-    protected void update(float interval) {
+    protected void update() {
         if (mouseInput.isRightButtonPressed()) {
             // Update camera based on mouse            
             Vector2f rotVec = mouseInput.getDisplVec();
@@ -149,14 +130,18 @@ public class GameEngine implements Runnable {
     }
 
     protected void render() {
-        if ( timer.getLastLoopTime() - lastFps > 1 ) {
-            lastFps = timer.getLastLoopTime();
+        if ( getTime() - lastFps > 1 ) {
+            lastFps = getTime();
             window.setWindowTitle(windowTitle + " - " + fps + " FPS");
             fps = 0;
         }
         fps++;
         renderer.render();
         window.update();
+    }
+
+    private double getTime() {
+        return System.nanoTime() / 1000_000_000.0;
     }
 
 }

@@ -8,7 +8,6 @@ import static org.lwjgl.opengl.GL11.glDisable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 
 import org.joml.Vector3f;
@@ -17,11 +16,12 @@ public class World {
 	
 	private Collection<Block> blocks;
 	private TextureMap texture;
-	private List<Block> backFaceCulledBlocks = new ArrayList<>();
-	private List<Block> semiTransparentBlocks = new ArrayList<>();
-	private List<Block> otherBlocks = new ArrayList<>();
 	private BlockTypeFinder blockTypeFinder;
+	private BlockListRenderer backFaceCulledBlocksRenderer;
+	private BlockListRenderer otherBlocksRenderer;
+	private BlockListRenderer semiTransparentBlocksRenderer;
 	
+
 	public World(Collection<Block> blocks, TextureMap texture, BlockTypeFinder blockTypeFinder) {
 		this.blocks = blocks;
 		this.texture = texture;
@@ -46,6 +46,9 @@ public class World {
 		}
 		blocks = newBlocks;
 		
+		List<Block> backFaceCulledBlocks = new ArrayList<>();
+		List<Block> semiTransparentBlocks = new ArrayList<>();
+		List<Block> otherBlocks = new ArrayList<>();
 		for (Block block : blocks) {
 			block.init(texture);
 			if (block.getType().isSemiTransparent()){
@@ -56,53 +59,62 @@ public class World {
 				otherBlocks.add(block);
 			}
 		}
+		
+		this.backFaceCulledBlocksRenderer = new BlockListRenderer(backFaceCulledBlocks, texture);
+		this.otherBlocksRenderer = new BlockListRenderer(otherBlocks, texture);
+		this.semiTransparentBlocksRenderer = new BlockListRenderer(semiTransparentBlocks, texture);
+		
 		this.texture.init();
 		
 	}
 	
 	public void render(Vector3f cameraPosition) {
-		
+		renderBackFaceCulledBlocks();
+		renderOtherBlocks();
+		renderSemiTransparentBlocks();
+	}
+	
+	public void renderBackFaceCulledBlocks() {
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
 
-		for (Block block : backFaceCulledBlocks) {
-			block.render();
-		}
-
+		backFaceCulledBlocksRenderer.render();
+	}
+	
+	public void renderOtherBlocks() {
         glDisable(GL_CULL_FACE);
 
-        for (Block block : otherBlocks) {
-			block.render();
-		}
-        
-        semiTransparentBlocks.sort(new Comparator<Block>() {
+        otherBlocksRenderer.render();
+	}
+	
+	public void renderSemiTransparentBlocks() {
+//      semiTransparentBlocks.sort(new Comparator<Block>() {
+//
+//			@Override
+//			public int compare(Block o1, Block o2) {
+//				Vector3f pos1 = new Vector3f(o1.getPosition()).sub(cameraPosition);
+//				Vector3f pos2 = new Vector3f(o2.getPosition()).sub(cameraPosition);
+//				float diff = (pos1.x * pos1.x + pos1.y * pos1.y + pos1.z * pos1.z) - (pos2.x * pos2.x + pos2.y * pos2.y + pos2.z * pos2.z);
+//				if (diff < 0) {
+//					return -1;
+//				}
+//				if (diff == 0) {
+//					return 0;
+//				}
+//				return 1;
+//			}
+//		});
 
-			@Override
-			public int compare(Block o1, Block o2) {
-				Vector3f pos1 = new Vector3f(o1.getPosition()).sub(cameraPosition);
-				Vector3f pos2 = new Vector3f(o2.getPosition()).sub(cameraPosition);
-				float diff = (pos1.x * pos1.x + pos1.y * pos1.y + pos1.z * pos1.z) - (pos2.x * pos2.x + pos2.y * pos2.y + pos2.z * pos2.z);
-				if (diff < 0) {
-					return -1;
-				}
-				if (diff == 0) {
-					return 0;
-				}
-				return 1;
-			}
-		});
-
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
-        for (Block block : semiTransparentBlocks) {
-			block.render();
-		}
+      glEnable(GL_CULL_FACE);
+      glCullFace(GL_BACK);
+      
+      semiTransparentBlocksRenderer.render();
 	}
 	
 	public void cleanup() {
-		for (Block block : blocks) {
-			block.cleanUp();
-		}
+		backFaceCulledBlocksRenderer.cleanup();
+		otherBlocksRenderer.cleanup();
+		semiTransparentBlocksRenderer.cleanup();
         texture.cleanup();
 	}
 	

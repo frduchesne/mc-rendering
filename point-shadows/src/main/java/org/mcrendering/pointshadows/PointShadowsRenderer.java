@@ -5,10 +5,13 @@ import static org.lwjgl.opengl.GL11.GL_CLIP_PLANE1;
 import static org.lwjgl.opengl.GL11.GL_CLIP_PLANE2;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_EQUAL;
+import static org.lwjgl.opengl.GL11.GL_LESS;
 import static org.lwjgl.opengl.GL11.GL_POLYGON_OFFSET_FILL;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glClear;
+import static org.lwjgl.opengl.GL11.glDepthFunc;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glPolygonOffset;
@@ -36,7 +39,7 @@ import org.mcrendering.schematicreader.SchematicReader;
 import org.mcrendering.schematicreader.World;
 
 /*
-import static org.lwjgl.opengl.GL11.*;
+ * import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL14.*;
@@ -53,24 +56,22 @@ import static org.lwjgl.opengl.GL42.*;
 import static org.lwjgl.opengl.GL43.*;
 import static org.lwjgl.opengl.GL44.*;
 import static org.lwjgl.opengl.GL45.*;
+
  */
+
 
 public class PointShadowsRenderer implements IRenderer {
 
     private static final int MAX_POINT_LIGHTS = 5;
 
     private World world;
-
     private ShadowMap shadowMap;
-
     private ShaderProgram depthShaderProgram;
-
+    private ShaderProgram firstPassShaderProgram;
     private ShaderProgram sceneShaderProgram;
-
     private Window window;
     private Camera camera;
-    
-    PointLight[] pointLights;
+    private PointLight[] pointLights;
 
     @Override
     public void initApplication(Window window, Camera camera) throws Exception {
@@ -116,9 +117,21 @@ public class PointShadowsRenderer implements IRenderer {
     @Override
     public void initRendering() throws Exception {
         setupDepthShader();
+        setUpFirstPassShader();
         setupSceneShader();
     }
 
+    private void setUpFirstPassShader() throws Exception {
+    	firstPassShaderProgram = new ShaderProgram();
+    	firstPassShaderProgram.createVertexShader(Utils.loadResource("/shaders/first_pass.vs"));
+    	firstPassShaderProgram.createFragmentShader(Utils.loadResource("/shaders/first_pass.fs"));
+    	firstPassShaderProgram.link();
+
+    	firstPassShaderProgram.createUniform("viewMatrix");
+    	firstPassShaderProgram.createUniform("projectionMatrix");
+    	firstPassShaderProgram.createUniform("texture_sampler");
+    }
+    
     private void setupDepthShader() throws Exception {
         depthShaderProgram = new ShaderProgram();
         depthShaderProgram.createVertexShader(Utils.loadResource("/shaders/depth_vertex.vs"));
@@ -135,22 +148,19 @@ public class PointShadowsRenderer implements IRenderer {
     }
 
     private void setupSceneShader() throws Exception {
-        // Create shader
         sceneShaderProgram = new ShaderProgram();
         sceneShaderProgram.createVertexShader(Utils.loadResource("/shaders/scene_vertex.vs"));
         sceneShaderProgram.createFragmentShader(Utils.loadResource("/shaders/scene_fragment.fs"));
         sceneShaderProgram.link();
 
-        // Create uniforms for view and projection matrices
         sceneShaderProgram.createUniform("viewMatrix");
         sceneShaderProgram.createUniform("projectionMatrix");
         sceneShaderProgram.createUniform("texture_sampler");
-        // Create lighting related uniforms
+
         sceneShaderProgram.createUniform("specularPower");
         sceneShaderProgram.createUniform("ambientLight");
         createPointLightListUniform(sceneShaderProgram, "pointLights", MAX_POINT_LIGHTS);
         
-        // shadow
         sceneShaderProgram.createUniform("shadowMap");
     }
 
@@ -158,18 +168,18 @@ public class PointShadowsRenderer implements IRenderer {
     public void render() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     	
-        // Render depth map before view ports has been set up
         renderDepthMap();
  
         glViewport(0, 0, window.getWidth(), window.getHeight());
 
-        // Update projection matrix once per render cycle
         window.updateProjectionMatrix();
 
+        renderFirstPass();
         renderScene();
     }
 
     private void renderDepthMap() {
+    	glDepthFunc(GL_LESS);
         glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.getDepthMapFBO());
         glViewport(0, 0, ShadowMap.SHADOW_LENGTH, ShadowMap.SHADOW_LENGTH);
         glEnable(GL_POLYGON_OFFSET_FILL);
@@ -186,13 +196,32 @@ public class PointShadowsRenderer implements IRenderer {
             world.render(camera.getPosition());
         }
         
-        // Unbind
         depthShaderProgram.unbind();
         glDisable(GL_POLYGON_OFFSET_FILL);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     
+    private void renderFirstPass() {
+    	glDepthFunc(GL_LESS);
+        firstPassShaderProgram.bind();
+
+        Matrix4f viewMatrix = camera.getViewMatrix();
+        Matrix4f projectionMatrix = window.getProjectionMatrix();
+        firstPassShaderProgram.setUniform("viewMatrix", viewMatrix);
+        firstPassShaderProgram.setUniform("projectionMatrix", projectionMatrix);
+
+        sceneShaderProgram.setUniform("texture_sampler", 0);
+        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, world.getTextureId());
+        
+        world.render(camera.getPosition());
+
+        sceneShaderProgram.unbind();
+    }
+    
     private void renderScene() {
+    	glDepthFunc(GL_EQUAL);
         sceneShaderProgram.bind();
 
         Matrix4f viewMatrix = camera.getViewMatrix();
@@ -231,6 +260,9 @@ public class PointShadowsRenderer implements IRenderer {
         }
         if (depthShaderProgram != null) {
             depthShaderProgram.cleanup();
+        }
+        if (firstPassShaderProgram != null) {
+        	firstPassShaderProgram.cleanup();
         }
     }
 

@@ -34,6 +34,7 @@ import org.mcrendering.common.MouseInput;
 import org.mcrendering.common.ShaderProgram;
 import org.mcrendering.common.Utils;
 import org.mcrendering.common.Window;
+import org.mcrendering.common.ZPrepassRenderer;
 import org.mcrendering.schematicreader.Block;
 import org.mcrendering.schematicreader.SchematicReader;
 import org.mcrendering.schematicreader.World;
@@ -59,7 +60,6 @@ import static org.lwjgl.opengl.GL45.*;
 
  */
 
-
 public class PointShadowsRenderer implements IRenderer {
 
     private static final int MAX_POINT_LIGHTS = 5;
@@ -67,11 +67,11 @@ public class PointShadowsRenderer implements IRenderer {
     private World world;
     private ShadowMap shadowMap;
     private ShaderProgram depthShaderProgram;
-    private ShaderProgram firstPassShaderProgram;
     private ShaderProgram sceneShaderProgram;
     private Window window;
     private Camera camera;
     private PointLight[] pointLights;
+    private ZPrepassRenderer zPrepassRenderer;
 
     @Override
     public void initApplication(Window window, Camera camera) throws Exception {
@@ -85,6 +85,9 @@ public class PointShadowsRenderer implements IRenderer {
         	this.world = new SchematicReader().read(fis);
         }
 
+        
+        this.zPrepassRenderer = new ZPrepassRenderer(window, camera, world);
+        
         // find torches
         List<Vector3f> pointLightPositions = new ArrayList<>();
         for (Block block : world.getBlocks()) {
@@ -117,19 +120,8 @@ public class PointShadowsRenderer implements IRenderer {
     @Override
     public void initRendering() throws Exception {
         setupDepthShader();
-        setUpFirstPassShader();
+        zPrepassRenderer.initRendering();
         setupSceneShader();
-    }
-
-    private void setUpFirstPassShader() throws Exception {
-    	firstPassShaderProgram = new ShaderProgram();
-    	firstPassShaderProgram.createVertexShader(Utils.loadResource("/shaders/first_pass.vs"));
-    	firstPassShaderProgram.createFragmentShader(Utils.loadResource("/shaders/first_pass.fs"));
-    	firstPassShaderProgram.link();
-
-    	firstPassShaderProgram.createUniform("viewMatrix");
-    	firstPassShaderProgram.createUniform("projectionMatrix");
-    	firstPassShaderProgram.createUniform("texture_sampler");
     }
     
     private void setupDepthShader() throws Exception {
@@ -174,7 +166,7 @@ public class PointShadowsRenderer implements IRenderer {
 
         window.updateProjectionMatrix();
 
-        renderFirstPass();
+        zPrepassRenderer.render();
         renderScene();
     }
 
@@ -199,25 +191,6 @@ public class PointShadowsRenderer implements IRenderer {
         depthShaderProgram.unbind();
         glDisable(GL_POLYGON_OFFSET_FILL);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-    
-    private void renderFirstPass() {
-    	glDepthFunc(GL_LESS);
-        firstPassShaderProgram.bind();
-
-        Matrix4f viewMatrix = camera.getViewMatrix();
-        Matrix4f projectionMatrix = window.getProjectionMatrix();
-        firstPassShaderProgram.setUniform("viewMatrix", viewMatrix);
-        firstPassShaderProgram.setUniform("projectionMatrix", projectionMatrix);
-
-        sceneShaderProgram.setUniform("texture_sampler", 0);
-        
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, world.getTextureId());
-        
-        world.render(camera.getPosition());
-
-        sceneShaderProgram.unbind();
     }
     
     private void renderScene() {
@@ -261,9 +234,7 @@ public class PointShadowsRenderer implements IRenderer {
         if (depthShaderProgram != null) {
             depthShaderProgram.cleanup();
         }
-        if (firstPassShaderProgram != null) {
-        	firstPassShaderProgram.cleanup();
-        }
+        zPrepassRenderer.cleanupRendering();
     }
 
     @Override

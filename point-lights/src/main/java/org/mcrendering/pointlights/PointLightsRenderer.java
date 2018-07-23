@@ -133,7 +133,7 @@ public class PointLightsRenderer implements IRenderer {
         sceneShaderProgram.setUniform("viewMatrix", viewMatrix);
         sceneShaderProgram.setUniform("projectionMatrix", projectionMatrix);
 
-        sceneShaderProgram.setUniform("ambientLight", new Vector3f(0.0000f, 0.0000f, 0.0000f));
+        sceneShaderProgram.setUniform("ambientLight", new Vector3f(0.003f, 0.003f, 0.003f));
         sceneShaderProgram.setUniform("specularPower", 1f);
 
         // Process Point Lights

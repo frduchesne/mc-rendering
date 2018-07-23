@@ -100,7 +100,7 @@ public class PointShadowsRenderer implements IRenderer {
         	pointLights[i] = new PointLight(
         			new Vector3f(210f/255f, 190f/255f, 156f/255f), 
         			pointLightPositions.get(i), 
-        			20.0f,
+        			1.0f,
         			new PointLight.Attenuation(1.0f, 0.35f, 0.44f));
         }
 
@@ -202,7 +202,7 @@ public class PointShadowsRenderer implements IRenderer {
         sceneShaderProgram.setUniform("viewMatrix", viewMatrix);
         sceneShaderProgram.setUniform("projectionMatrix", projectionMatrix);
 
-        sceneShaderProgram.setUniform("ambientLight", new Vector3f(0.3f, 0.3f, 0.3f));
+        sceneShaderProgram.setUniform("ambientLight", new Vector3f(0.003f, 0.003f, 0.003f));
         sceneShaderProgram.setUniform("specularPower", 1f);
 
         // Process Point Lights
